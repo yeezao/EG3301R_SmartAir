@@ -5,21 +5,25 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
+
+
 #include "DFRobot_CCS811.h"
 #include <IRremote.h>
-#include <dht11.h>
+//#include <dht11.h>
+#include <DFRobot_DHT11.h>
 #include <Arduino.h>
-dht11 DHT;
+//dht11 DHT;
+DFRobot_DHT11 DHT;
 DFRobot_CCS811 CCS811;
 
-const char* wifi_ssid = "Redmi Note 9S_1993"
-const char* wifi_pw = "password123"
+const char* wifi_ssid = "Redmi Note 9S_1993";
+const char* wifi_pw = "password123";
 
-const char* mqtt_broker = "192.168.81.101"
-const char* mqtt_topic = "sensordata"
-const char* mqtt_clientid = "sensor"
+const char* mqtt_broker = "192.168.81.101";
+const char* mqtt_topic = "sensordata";
+const char* mqtt_clientid = "sensor";
 
-WifiClient wificlient;
+WiFiClient wificlient;
 PubSubClient client(mqtt_broker, 1883, wificlient);
 
 #define DECODE_NEC
@@ -37,18 +41,17 @@ void transmit_data(DFRobot_CCS811 CCS811) {
 
   bool ret = client.publish(mqtt_topic, json.c_str());
   if (!ret) {
-    Serial.print("Sending failed.")
+    Serial.print("Sending failed.");
   }
 }
 
 String encode_json(DFRobot_CCS811 CCS811) {
 
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonBuffer& root = jsonBuffer.createObject();
-  root["CO2"] = CCS811.getCO2PPM();
-  root["TVOC"] = CCS811.getTVOCPPB();
+  StaticJsonDocument<200> jsondoc;
+  jsondoc["CO2"] = CCS811.getCO2PPM();
+  jsondoc["TVOC"] = CCS811.getTVOCPPB();
   String output;
-  serializeJson(jsonBuffer, output);
+  serializeJson(jsondoc, output);
   Serial.print(output);
   return output;
   
@@ -59,6 +62,7 @@ void setup_wifi() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(100);
   }
+  Serial.println("Wifi Successfully connected");
 }
 
 void setup(void)
