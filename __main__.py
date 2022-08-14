@@ -1,13 +1,13 @@
 import paho.mqtt.client as mqtt
 import json
 import time
-from queue import Queue
 
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "action"
 NUM_OF_SENSORS = 1
 
-global client1, client2
+global client1
+global client2
 sensor_dict = {}
 
 # decode json string into objects and add to sensor_dictionary
@@ -16,13 +16,12 @@ def json_serialize_add(client, message):
     sensor_dict[client] = dic
     print(sensor_dict)
 
-# subscribe broker to sensors topic
-def subscribe_to_topic():
-    client1.subscribe(MQTT_TOPIC_SUB)
+    # subscribe broker to sensors topic
+def subscribe_to_topic(client):
+    client.subscribe(MQTT_TOPIC_SUB)
     #client2.subscribe(MQTT_TOPIC_SUB)
-    client1.on_message = on_sensor_message  
+    client.on_message = on_sensor_message  
     #client2.on_message = on_sensor_message
-    #client1.
 
 # Connect clients to broker
 def connect_to_broker(client):
@@ -30,9 +29,11 @@ def connect_to_broker(client):
     print("Connecting to client ", client)
     client.connect("192.168.81.101", 1883)
     #client.loop_start()
+    time.sleep(5)
     while not client.is_connected:
         time.sleep(1)
         print("Still attempting to connect to ", client)
+    print("conn success")
     #client.loop_end()
 
 
@@ -42,7 +43,7 @@ def setup():
     #client2 = mqtt.Client("Sensor2")
     connect_to_broker(client1)
     #connect_to_broker(client2)
-    subscribe_to_topic()
+    subscribe_to_topic(client1)
 
 def process_sensor_data():
     time.sleep(1)
@@ -57,15 +58,12 @@ def main():
             print("All sensors have transmitted data - beginning processing")
             process_sensor_data()
         else:
+            print("Not all sensor data received")
             time.sleep(5)
 
     #client1.loop_forever()
     #client2.loop_forever()
-        
-
-if __name__ == "__main__":
-    main()
-
+    
 # Callback for when broker receives a message from client
 def on_sensor_message(client, userdata, message):
     print("raw binary data received: ", message)
@@ -77,4 +75,8 @@ def on_connect(client, ret):
     if ret != 0:
         print("Connection failed with error ", client, " - ", ret)
     else:
+        print("Connection Successful with message ", ret, "from client ", client)
         client.loop_start()
+
+if __name__ == "__main__":
+    main()
