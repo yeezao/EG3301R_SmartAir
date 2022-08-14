@@ -12,6 +12,7 @@ sensor_dict = {}
 
 # decode json string into objects and add to sensor_dictionary
 def json_serialize_add(client, message):
+    print("JSON message is ", message)
     dic = json.loads(message)
     sensor_dict[client] = dic
     print(sensor_dict)
@@ -35,7 +36,7 @@ def connect_to_broker(client):
         print("Still attempting to connect to ", client)
     print("conn success")
     #client.loop_end()
-
+    client.loop_start()
 
 # Initialise clients and begin connection
 def setup():
@@ -68,10 +69,10 @@ def main():
 def on_sensor_message(client, userdata, message):
     print("raw binary data received: ", message)
     print("Message received from Sensor", str(message.payload.decode("utf-8")))
-    json_serialize_add(client, message)
+    json_serialize_add(client, str(message.payload.decode("utf-8")))
 
 # Callback to print error if connection fails
-def on_connect(client, ret):
+def on_connect(client, userdata, flags, ret):
     if ret != 0:
         print("Connection failed with error ", client, " - ", ret)
     else:
