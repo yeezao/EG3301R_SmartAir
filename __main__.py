@@ -6,7 +6,7 @@ from queue import Queue
 
 MQTT_TOPIC_SUB = "sensor_data"
 MQTT_TOPIC_PUB = "action"
-NUM_OF_SENSORS = 2
+NUM_OF_SENSORS = 1
 
 sensor_dict = {}
 
@@ -23,9 +23,9 @@ def on_sensor_message(client, userdata, message):
 # subscribe broker to sensors topic
 def subscribe_to_topic():
     client1.subscribe(MQTT_TOPIC_SUB)
-    client2.subscribe(MQTT_TOPIC_SUB)
+    #client2.subscribe(MQTT_TOPIC_SUB)
     client1.on_message = on_sensor_message  
-    client2.on_message = on_sensor_message
+    #client2.on_message = on_sensor_message
     #client1.
 
 # Callback to print error if connection fails
@@ -50,9 +50,9 @@ def connect_to_broker(client):
 def setup():
     global client1, client2
     client1 = mqtt.Client("Sensor1")
-    client2 = mqtt.Client("Sensor2")
+    #client2 = mqtt.Client("Sensor2")
     connect_to_broker(client1)
-    connect_to_broker(client2)
+    #connect_to_broker(client2)
     subscribe_to_topic()
 
 def process_sensor_data():
@@ -64,9 +64,11 @@ def main():
     setup()
 
     while(1):
-        if (len(dict) == NUM_OF_SENSORS):
+        if (len(sensor_dict) == NUM_OF_SENSORS):
             print("All sensors have transmitted data - beginning processing")
             process_sensor_data()
+        else:
+            time.sleep(5)
 
     #client1.loop_forever()
     #client2.loop_forever()
