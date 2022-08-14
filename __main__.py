@@ -49,7 +49,7 @@ def connect_to_broker(client):
 # Initialise clients and begin connection
 def setup():
     global client1, client2
-    client1 = mqtt.Client("Sensor1")
+    client1 = mqtt.Client("Sensor")
     #client2 = mqtt.Client("Sensor2")
     connect_to_broker(client1)
     #connect_to_broker(client2)
