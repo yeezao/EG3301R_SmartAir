@@ -5,15 +5,13 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-
-
 #include "DFRobot_CCS811.h"
 #include <IRremote.h>
-//#include <dht11.h>
+#include <dht11.h>
 #include <DFRobot_DHT11.h>
 #include <Arduino.h>
 //dht11 DHT;
-DFRobot_DHT11 DHT;
+dht11 DHT;
 DFRobot_CCS811 CCS811;
 
 const char* wifi_ssid = "Redmi Note 9S_1993";
@@ -76,7 +74,7 @@ void setup(void)
         delay(1000);
     }
 
-  setup_wifi();
+    setup_wifi();
     
 }
 
