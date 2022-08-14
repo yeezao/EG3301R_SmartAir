@@ -1,7 +1,5 @@
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WiFiServer.h>
-#include <WiFiUdp.h>
+#include <SPI.h>
+#include <WiFiNINA.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
@@ -18,7 +16,8 @@ const char* wifi_ssid = "Redmi Note 9S_1993";
 const char* wifi_pw = "password123";
 
 const char* mqtt_broker = "192.168.81.101";
-const char* mqtt_topic = "sensordata";
+const char* mqtt_pub_topic = "sensordata";
+const char* mqtt_sub_topic = "action"
 const char* mqtt_clientid = "sensor";
 
 WiFiClient wificlient;
@@ -34,10 +33,13 @@ void transmit_data(DFRobot_CCS811 CCS811) {
 
   String json = encode_json(CCS811);
   
-  client.connect(mqtt_clientid);
+  bool ret = client.connect(mqtt_clientid);
   delay(100);
+  if (!ret) {
+    Serial.print("Could not connect to MQTT broker.");
+  }
 
-  bool ret = client.publish(mqtt_topic, json.c_str());
+  ret = client.publish(mqtt_pub_topic, json.c_str());
   if (!ret) {
     Serial.print("Sending failed.");
   }
@@ -73,7 +75,7 @@ void setup(void)
         Serial.println("failed to init chip, please check if the chip connection is fine");
         delay(1000);
     }
-
+    
     setup_wifi();
     
 }
