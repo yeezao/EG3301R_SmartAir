@@ -1,3 +1,10 @@
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <WiFiServer.h>
+#include <WiFiUdp.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+
 #include "DFRobot_CCS811.h"
 #include <IRremote.h>
 #include <dht11.h>
@@ -5,11 +12,54 @@
 dht11 DHT;
 DFRobot_CCS811 CCS811;
 
+const char* wifi_ssid = "Redmi Note 9S_1993"
+const char* wifi_pw = "password123"
+
+const char* mqtt_broker = "192.168.81.101"
+const char* mqtt_topic = "sensordata"
+const char* mqtt_clientid = "sensor"
+
+WifiClient wificlient;
+PubSubClient client(mqtt_broker, 1883, wificlient);
+
 #define DECODE_NEC
 #define DHT11_PIN 2
 const int RECV_PIN = 3;
 IRrecv irrecv(RECV_PIN);
 decode_results results;
+
+void transmit_data(DFRobot_CCS811 CCS811) {
+
+  String json = encode_json(CCS811);
+  
+  client.connect(mqtt_clientid);
+  delay(100);
+
+  bool ret = client.publish(mqtt_topic, json.c_str());
+  if (!ret) {
+    Serial.print("Sending failed.")
+  }
+}
+
+String encode_json(DFRobot_CCS811 CCS811) {
+
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonBuffer& root = jsonBuffer.createObject();
+  root["CO2"] = CCS811.getCO2PPM();
+  root["TVOC"] = CCS811.getTVOCPPB();
+  String output;
+  serializeJson(jsonBuffer, output);
+  Serial.print(output);
+  return output;
+  
+}
+
+void setup_wifi() {
+  WiFi.begin(wifi_ssid, wifi_pw);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(100);
+  }
+}
 
 void setup(void)
 {
@@ -21,6 +71,9 @@ void setup(void)
         Serial.println("failed to init chip, please check if the chip connection is fine");
         delay(1000);
     }
+
+  setup_wifi();
+    
 }
 
 void loop() {
@@ -58,6 +111,8 @@ void loop() {
       Serial.print("ppm, TVOC: ");
       Serial.print(CCS811.getTVOCPPB());
       Serial.println("ppb");
+
+      transmit_data(CCS811);
 
 } else {
         Serial.println("Data is not ready!");
