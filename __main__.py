@@ -1,16 +1,25 @@
 import paho.mqtt.client as mqtt
 import json
 import time
+import RPi.GPIO as GPIO
 
 import SensorDataProcessor
 
 BROKER_IP = "192.168.81.101"
 MQTT_PORT = 1883
 MQTT_TOPIC_SUB = "sensordata"
-MQTT_TOPIC_PUB = "action"
+MQTT_TOPIC_PUB = "filter_action"
 NUM_OF_SENSORS = 1
 
-data_in_processing = False;
+# Using GPIO Pin 5 for Relay 1 and GPIO Pin 6 for Relay 2
+
+FILTER = "filter"
+RELAY_1 = "relay1"
+RELAY_2 = "relay2"
+RELAY_1_PIN = 5
+RELAY_2_PIN = 6
+
+data_in_processing = False
 
 # global client1  #client with sensor and IR blaster
 # global client2  #client with sensor and relay
@@ -49,6 +58,10 @@ def connect_to_broker(client):
 
 # Initialise clients and begin connection
 def setup():
+    GPIO.setMode(GPIO.BOARD)
+    GPIO.setup(RELAY_1_PIN, GPIO.OUT)
+    GPIO.setup(RELAY_2_PIN, GPIO.OUT)
+
     global client1
     client1 = mqtt.Client("Sensor1")
     #client2 = mqtt.Client("Sensor2")
@@ -63,12 +76,21 @@ def process_sensor_data():
     send_actions(action_dict)
 
 def send_actions(action_dict):
-    if (action_dict["filter"]):
-        client1.publish("action", action_dict["filter"])
-    if (action_dict["relay1"]):
-        pass
-    if (action_dict["relay2"]):
-        pass
+    if (action_dict[FILTER]):
+        client1.publish(MQTT_TOPIC_PUB, action_dict[FILTER])
+    if (action_dict[RELAY_1] or action_dict[RELAY_2]):
+        process_relay_action()
+
+def process_relay_action():
+    if action_dict[RELAY_1] == 1:
+        GPIO.output(RELAY_1_PIN, GPIO.HIGH)
+    elif action_dict[RELAY_1] == -1:
+        GPIO.output(RELAY_1_PIN, GPIO.LOW)
+
+    if action_dict[RELAY_2] == 1:
+        GPIO.output(RELAY_2_PIN, GPIO.HIGH)
+    elif action_dict[RELAY_1] == -1:
+        GPIO.output(RELAY_2_PIN, GPIO.LOW)
 
 # Callback for when broker receives a message from client
 def on_sensor_message(client, userdata, message):
