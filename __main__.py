@@ -78,11 +78,13 @@ def process_sensor_data():
 
 def send_actions(action_dict):
     if (action_dict[FILTER]):
+        print("sending action ", action_dict[FILTER], " to Arduino")
         client1.publish(MQTT_TOPIC_PUB, json_deserialise({FILTER: action_dict[FILTER]}))
     if (action_dict[RELAY_1] or action_dict[RELAY_2]):
         process_relay_action()
 
 def process_relay_action():
+    print("sending actions ", action_dict[RELAY_1], " ", action_dict[RELAY_2], " to GPIO Pins")
     if action_dict[RELAY_1] == 1:
         GPIO.output(RELAY_1_PIN, GPIO.HIGH)
     elif action_dict[RELAY_1] == -1:
