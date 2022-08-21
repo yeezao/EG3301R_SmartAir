@@ -46,7 +46,7 @@ def connect_to_broker(client):
     client.on_connect = on_connect
     print("Connecting to client ", client)
     client.connect(BROKER_IP, MQTT_PORT)
-    client.loop_start()
+    #client.loop_start()
     time.sleep(5)
     while not client.is_connected:
         time.sleep(1)
@@ -62,7 +62,7 @@ def setup():
     GPIO.setup(RELAY_2_PIN, GPIO.OUT)
 
     global client1
-    client1 = mqtt.Client("processor")
+    client1 = mqtt.Client("sensor")
     #client2 = mqtt.Client("Sensor2")
     connect_to_broker(client1)
     #connect_to_broker(client2)
@@ -106,12 +106,12 @@ def on_publish(client, userdata, result):
 
 
 # Callback to print error if connection fails
-def on_connect(client, userdata, flags, ret):
+def on_connect(client, ret):
     if ret != 0:
         print("Connection failed with error ", client, " - ", ret)
     else:
         print("Connection Successful with message ", ret, "from client ", client)
-        client.loop_forever()
+        client.loop_start()
 
 def main():
 
