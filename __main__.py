@@ -3,10 +3,6 @@ import json
 import time
 import RPi.GPIO as GPIO
 
-import SensorDataProcessor
-
-BROKER_IP = "192.168.81.101"
-MQTT_PORT = 1883
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
 NUM_OF_SENSORS = 1
@@ -22,14 +18,17 @@ RELAY_2_PIN = 31
 
 # global client1  #client with sensor and IR blaster
 # global client2  #client with sensor and relay
+global client1
+global client2
 sensor_dict = {}
-action_dict = {}
 
 # decode json string into objects and add to sensor_dictionary
 def json_serialize_add(client, message):
+    print("JSON message is ", message)
     dic = json.loads(message)
     sensor_dict[client] = dic
     print(sensor_dict)
+
 
 # encode action data to json string
 def json_deserialise(object):
@@ -53,7 +52,7 @@ def connect_to_broker(client):
         print("Still attempting to connect to ", client)
     print("conn success")
     #client.loop_end()
-
+    client.loop_start()
 
 # Initialise clients and begin connection
 def setup():
@@ -68,7 +67,6 @@ def setup():
     #connect_to_broker(client2)
     subscribe_to_topic(client1)
 
-#
 def process_sensor_data():
     sensor_data_processor = SensorDataProcessor(sensor_dict)
     action_dict = sensor_data_processor.process_data()
@@ -114,7 +112,7 @@ def on_connect(client, userdata, flags, ret):
         client.loop_forever()
 
 def main():
-
+    
     setup()
 
     while(1):
@@ -124,8 +122,6 @@ def main():
             #data_in_processing = True
             process_sensor_data()
             time.sleep(2)
-        #elif (data_in_processing == True):
-            #print("Data is currently being processed...")
         else:
             print("Not all sensor data received")
             #GPIO.output(RELAY_1_PIN, GPIO.HIGH)
@@ -135,6 +131,20 @@ def main():
 
     #client1.loop_forever()
     #client2.loop_forever()
+    
+# Callback for when broker receives a message from client
+def on_sensor_message(client, userdata, message):
+    print("raw binary data received: ", message)
+    print("Message received from Sensor", str(message.payload.decode("utf-8")))
+    json_serialize_add(client, str(message.payload.decode("utf-8")))
+
+# Callback to print error if connection fails
+def on_connect(client, userdata, flags, ret):
+    if ret != 0:
+        print("Connection failed with error ", client, " - ", ret)
+    else:
+        print("Connection Successful with message ", ret, "from client ", client)
+        client.loop_start()
 
 if __name__ == "__main__":
     main()
