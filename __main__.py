@@ -74,6 +74,7 @@ def process_sensor_data():
     sensor_data_processor = SensorDataProcessor(sensor_dict)
     action_dict = sensor_data_processor.process_data()
     send_actions(action_dict)
+    data_in_processing = False
 
 def send_actions(action_dict):
     if (action_dict[FILTER]):
@@ -82,7 +83,6 @@ def send_actions(action_dict):
         process_relay_action()
 
 def process_relay_action():
-
     if action_dict[RELAY_1] == 1:
         GPIO.output(RELAY_1_PIN, GPIO.HIGH)
     elif action_dict[RELAY_1] == -1:
@@ -118,14 +118,15 @@ def main():
 
     while(1):
         if (len(sensor_dict) == NUM_OF_SENSORS and data_in_processing == False):
-            print("All sensors have transmitted data - beginning processing")
-            process_sensor_data()
+            print("All sensors have transmitted data - beginning processing") 
             data_in_processing = True
+            process_sensor_data()
+            time.sleep(300)
         elif (data_in_processing == True):
             print("Data is currently being processed...")
         else:
             print("Not all sensor data received")
-            time.sleep(5)
+            time.sleep(300)
 
     #client1.loop_forever()
     #client2.loop_forever()
