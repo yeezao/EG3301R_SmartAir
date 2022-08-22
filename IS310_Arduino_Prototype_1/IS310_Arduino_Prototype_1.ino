@@ -8,8 +8,8 @@
 #include <dht11.h>
 #include <DFRobot_DHT11.h>
 #include <Arduino.h>
-//dht11 DHT;
 dht11 DHT;
+//dht11 DHT;
 DFRobot_CCS811 CCS811;
 
 const char* wifi_ssid = "Redmi Note 9S_1993";
@@ -17,7 +17,7 @@ const char* wifi_pw = "password123";
 
 const char* mqtt_broker_ip = "192.168.81.101";
 const char* mqtt_pub_topic = "sensordata";
-const char* mqtt_sub_topic = "filter_action"
+const char* mqtt_sub_topic = "filter_action";
 const char* mqtt_clientid = "sensor";
 const char* mqtt_port = 1883;
 
@@ -30,20 +30,25 @@ const int RECV_PIN = 3;
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
-void transmit_data(DFRobot_CCS811 CCS811) {
+void transmit_data(DFRobot_CCS811 CCS811, dht11 DHT11) {
 
-  String json = encode_json(CCS811);
+  String json = encode_json(CCS811, DHT11);
 
-  ret = client.publish(mqtt_pub_topic, json.c_str());
+  setup_mqtt();
+
+  int ret = client.publish(mqtt_pub_topic, json.c_str());
+  Serial.println(ret);
   if (!ret) {
     Serial.print("Sending failed.");
   }
 }
 
-String encode_json(DFRobot_CCS811 CCS811) {
+String encode_json(DFRobot_CCS811 CCS811, dht11 DHT11) {
   StaticJsonDocument<200> jsondoc;
   jsondoc["CO2"] = CCS811.getCO2PPM();
   jsondoc["TVOC"] = CCS811.getTVOCPPB();
+  jsondoc["Humidity"] = DHT11.humidity;
+  jsondoc["Temp"] = DHT11.temperature-2;
   String output;
   serializeJson(jsondoc, output);
   Serial.print(output);
@@ -52,15 +57,17 @@ String encode_json(DFRobot_CCS811 CCS811) {
 
 int decode_json(byte* payload) {
   StaticJsonDocument<200> jsondoc;
-  deserializeJson(jsonDoc, payload);
+  deserializeJson(jsondoc, payload);
   Serial.print("The received filter action is ");
-  Serial.println(jsondoc["filter"]);
-  return jsondoc["filter"];  
+  //Serial.println(jsondoc["filter"]);
+  //return jsondoc["filter"];  
+  return 0;
 }
 
 void read_aq_data() {
   int chk;
   Serial.print("DHT11: ");
+  
   chk = DHT.read(DHT11_PIN);    // READ DATA
   switch (chk){
     case DHTLIB_OK:
@@ -76,12 +83,15 @@ void read_aq_data() {
                 Serial.print("Unknown error,\t");
                 break;
   }
+  
   // DISPLAY DATA
+  
   Serial.print("Humidity: ");
   Serial.print(DHT.humidity,1);
   Serial.print(",\t");
   Serial.print("Temperature: ");
   Serial.println(DHT.temperature-2,1); // Zero temperature data
+  
   
   if(CCS811.checkDataReady() == true){
       Serial.print("CO2: ");
@@ -90,7 +100,7 @@ void read_aq_data() {
       Serial.print(CCS811.getTVOCPPB());
       Serial.println("ppb");
 
-      transmit_data(CCS811);
+      transmit_data(CCS811, DHT);
 
 } else {
         Serial.println("Data is not ready!");
@@ -101,6 +111,7 @@ void read_aq_data() {
 }
 
 void on_mqtt_message(char* topic, byte* payload, unsigned int length) {
+  Serial.println("Message Received");
   int filter_action = decode_json(payload);
   send_ir(filter_action); 
 }
@@ -109,12 +120,15 @@ void send_ir(int action) {
   
 }
 
-void setup_wifi_mqtt() {
+void setup_wifi() {
   WiFi.begin(wifi_ssid, wifi_pw);
   while (WiFi.status() != WL_CONNECTED) {
     delay(100);
   }
   Serial.println("Wifi Successfully connected");
+}
+
+void setup_mqtt() {
   bool ret = client.connect(mqtt_clientid);
   delay(100);
   if (!ret) {
@@ -136,18 +150,20 @@ void setup(void)
         delay(1000);
     }
     
-    setup_wifi_mqtt();
+    setup_wifi();
 }
 
 void loop() {
 
-  client.poll();
+  client.loop();
   
    if (IrReceiver.decode()) {
-        Serial.println(results.value, HEX);
+        Serial.println(IrReceiver.decodedIRData.decodedRawData, HEX);
         IrReceiver.resume(); // Enable receiving of the next value
   }
 
   read_aq_data();
+
+  delay(2000);
   
 }
