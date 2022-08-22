@@ -18,13 +18,10 @@ class SensorDataProcessor:
         for client_obj, sensor_indiv_dict in sensor_dict.items():
             temp_dict = sensor_indiv_dict
             c02_list.append(sensor_indiv_dict["CO2"])
-            voc_list.append(sensor_indiv_dict["VOC"])
+            voc_list.append(sensor_indiv_dict["TVOC"])
 
-        avg_c02 = avg_list(c02_list)
-        avg_voc = avg_list(voc_list)
-
-        def avg_list(list):
-            return sum(list) / len(list)
+        avg_c02 = self.avg_list(c02_list)
+        avg_voc = self.avg_list(voc_list)
 
         if avg_c02 >= 400:
             action_dict[RELAY_1] = 1
@@ -40,8 +37,11 @@ class SensorDataProcessor:
 
 
         action_dict["relay2"] = "test"
+        print(action_dict)
         return action_dict
 
+    def avg_list(self, aqlist):
+        return sum(aqlist) / len(aqlist)
         
 
 
