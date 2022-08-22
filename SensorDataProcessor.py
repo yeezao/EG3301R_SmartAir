@@ -12,23 +12,37 @@ class SensorDataProcessor:
     def process_data(self, sensor_dict):
         action_dict = {FILTER: 0, RELAY_1: 0, RELAY_2: 0}
 
-        co2_value = sensor_dict["Sensor1"]["CO2"]
-        voc_value = sensor_dict["Sensor1"]["TVOC"]
+        c02_list = []
+        voc_list = []
 
-        if co2_value >= 400:
+        for client_obj, sensor_indiv_dict in sensor_dict.items():
+            temp_dict = sensor_indiv_dict
+            c02_list.append(sensor_indiv_dict["CO2"])
+            voc_list.append(sensor_indiv_dict["VOC"])
+
+        avg_c02 = avg_list(c02_list)
+        avg_voc = avg_list(voc_list)
+
+        def avg_list(list):
+            return sum(list) / len(list)
+
+        if avg_c02 >= 400:
             action_dict[RELAY_1] = 1
-        elif co2_value <= 300:
+        elif avg_c02 <= 300:
             action_dict[RELAY_1] = -1
 
-        if voc_value >= 100:
+        if avg_voc >= 3:
             action_dict[FILTER] = 3
-        elif voc_value >= 75:
+        elif avg_voc >= 2:
             action_dict[FILTER] = 2
-        elif voc_value >= 50:
+        elif avg_voc >= 1:
             action_dict[FILTER] = 1
 
 
         action_dict["relay2"] = "test"
         return action_dict
+
+        
+
 
 # time.sleep(1)
