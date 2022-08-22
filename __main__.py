@@ -3,9 +3,14 @@ import json
 import time
 import RPi.GPIO as GPIO
 
+import SensorDataProcessor
+
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
 NUM_OF_SENSORS = 1
+BROKER_IP = "192.168.81.101"
+MQTT_PORT = 1883
+
 
 # Using GPIO Pin 5 (29) for Relay 1 and GPIO Pin 6 (31) for Relay 2
 
@@ -110,7 +115,7 @@ def on_connect(client, userdata, flags, ret):
         print("Connection failed with error ", client, " - ", ret)
     else:
         print("Connection Successful with message ", ret, "from client ", client)
-        client.loop_forever()
+        #client.loop_forever()
 
 def main():
     
