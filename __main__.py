@@ -113,10 +113,7 @@ def main():
             data_in_processing = False
         else:
             print("Not all sensor data received")
-            #GPIO.output(RELAY_1_PIN, GPIO.HIGH)
-            time.sleep(4)
-            #GPIO.output(RELAY_1_PIN, GPIO.LOW)
-            time.sleep(4)
+            time.sleep(30)
 
 # Callback for when broker receives a message from client
 def on_sensor_message(client, userdata, message):
