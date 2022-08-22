@@ -26,20 +26,37 @@ PubSubClient client(mqtt_broker_ip, 1883, wificlient);
 
 #define DECODE_NEC
 #define DHT11_PIN 2
-const int RECV_PIN = 3;
+#define RECV_PIN 3;
+
+#define SENSOR_DELAY 10000
+
+#define IR_ON_OFF 0xFD02FF00
+#define IR_CHANGE_SPEED 0xF609FF00
+#define IR_CHANGE_TIMER 0xF708FF00
+#define IR_RESET 0xFF00FF00
+
+#define FILTER_OFF 0
+#define FILTER_SPEED_1 1
+#define FILTER_SPEED_2 2
+#define FILTER_SPEED_3 3
+
+int filter_state = FILTER_OFF;
+
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
-void transmit_data(DFRobot_CCS811 CCS811, dht11 DHT11) {
 
-  String json = encode_json(CCS811, DHT11);
+void transmit_data(DFRobot_CCS811 CCS811) {
 
-  setup_mqtt();
-
+  String json = encode_json(CCS811);
   int ret = client.publish(mqtt_pub_topic, json.c_str());
   Serial.println(ret);
   if (!ret) {
     Serial.print("Sending failed.");
+    setup_wifi();
+    setup_mqtt();
+    int ret = client.publish(mqtt_pub_topic, json.c_str());
+    Serial.println(ret);
   }
 }
 
@@ -59,9 +76,8 @@ int decode_json(byte* payload) {
   StaticJsonDocument<200> jsondoc;
   deserializeJson(jsondoc, payload);
   Serial.print("The received filter action is ");
-  //Serial.println(jsondoc["filter"]);
-  //return jsondoc["filter"];  
-  return 0;
+  Serial.println(jsondoc["filter"].as<int>());
+  return jsondoc["filter"].as<int>();  
 }
 
 void read_aq_data() {
@@ -121,18 +137,22 @@ void send_ir(int action) {
 }
 
 void setup_wifi() {
-  WiFi.begin(wifi_ssid, wifi_pw);
+//  WiFi.disconnect();
+//  WiFi.begin(wifi_ssid, wifi_pw);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(100);
+    delay(1000);
+    WiFi.disconnect();
+    WiFi.begin(wifi_ssid, wifi_pw);
   }
   Serial.println("Wifi Successfully connected");
 }
 
 void setup_mqtt() {
   bool ret = client.connect(mqtt_clientid);
-  delay(100);
+  delay(1000);
   if (!ret) {
     Serial.print("Could not connect to MQTT broker.");
+    setup_wifi();
   }
   client.setServer(mqtt_broker_ip, mqtt_port);
   client.subscribe(mqtt_sub_topic);
@@ -151,6 +171,7 @@ void setup(void)
     }
     
     setup_wifi();
+    setup_mqtt();
 }
 
 void loop() {
@@ -162,8 +183,10 @@ void loop() {
         IrReceiver.resume(); // Enable receiving of the next value
   }
 
-  read_aq_data();
-
-  delay(2000);
+  unsigned long start = millis();           
+  if (millis() - start >= 10000) {
+    read_aq_data();
+    start = millis();
+  }
   
 }
