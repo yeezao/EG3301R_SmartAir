@@ -12,7 +12,7 @@ class SensorDataProcessor:
         self.sensor_dict = sensor_dict
         pass
 
-    def process_data():
+    def process_data(self):
         action_dict = {FILTER: 0, RELAY_1: 0, RELAY_2: 0}
 
         co2_value = sensor_dict["Sensor1"]["CO2"]
