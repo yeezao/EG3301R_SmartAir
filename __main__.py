@@ -21,6 +21,7 @@ RELAY_2_PIN = 31
 global client1
 global client2
 sensor_dict = {}
+action_dict = {}
 
 # decode json string into objects and add to sensor_dictionary
 def json_serialize_add(client, message):
