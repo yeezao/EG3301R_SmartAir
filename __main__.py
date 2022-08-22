@@ -3,7 +3,7 @@ import json
 import time
 import RPi.GPIO as GPIO
 
-import SensorDataProcessor
+from SensorDataProcessor import SensorDataProcessor
 
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
