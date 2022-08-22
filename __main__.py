@@ -74,8 +74,8 @@ def setup():
     subscribe_to_topic(client1)
 
 def process_sensor_data():
-    sensor_data_processor = SensorDataProcessor(sensor_dict)
-    action_dict = sensor_data_processor.process_data()
+    sensor_data_processor = SensorDataProcessor()
+    action_dict = sensor_data_processor.process_data(sensor_dict)
     #send_actions(action_dict)
     #data_in_processing = False
 

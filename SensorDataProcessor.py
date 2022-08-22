@@ -6,13 +6,10 @@ RELAY_2 = "relay2"
 
 class SensorDataProcessor:
 
-    global sensor_dict
-
-    def __init__(self, sensor_dict):
-        self.sensor_dict = sensor_dict
+    def __init__(self):
         pass
 
-    def process_data(self):
+    def process_data(self, sensor_dict):
         action_dict = {FILTER: 0, RELAY_1: 0, RELAY_2: 0}
 
         co2_value = sensor_dict["Sensor1"]["CO2"]
