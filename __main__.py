@@ -21,10 +21,8 @@ RELAY_1_PIN = 29
 RELAY_2_PIN = 31
 
 
-# global client1  #client with sensor and IR blaster
-# global client2  #client with sensor and relay
-global client1
-global client2
+global client1  #client with sensor and IR blaster
+global client2  #client with sensor and relay
 sensor_dict = {}
 action_dict = {}
 
@@ -66,7 +64,7 @@ def setup():
     GPIO.setup(RELAY_2_PIN, GPIO.OUT)
 
     global client1
-    client1 = mqtt.Client("processor")
+    client1 = mqtt.Client(client_id="pi_data_processor")
     client1.on_message = on_sensor_message
     client1.on_publish = on_publish
     connect_to_broker(client1)
@@ -74,16 +72,17 @@ def setup():
 def process_sensor_data():
     sensor_data_processor = SensorDataProcessor()
     action_dict = sensor_data_processor.process_data(sensor_dict)
-    #send_actions(action_dict)
+    send_actions(action_dict)
 
 def send_actions(action_dict):
+    print(action_dict)
     if (action_dict[FILTER]):
         print("sending action ", action_dict[FILTER], " to Arduino")
         client1.publish(MQTT_TOPIC_PUB, json_deserialise({FILTER: action_dict[FILTER]}))
     if (action_dict[RELAY_1] or action_dict[RELAY_2]):
-        process_relay_action()
+        process_relay_action(action_dict)
 
-def process_relay_action():
+def process_relay_action(action_dict):
     print("sending actions ", action_dict[RELAY_1], " ", action_dict[RELAY_2], " to GPIO Pins")
     if action_dict[RELAY_1] == 1:
         GPIO.output(RELAY_1_PIN, GPIO.HIGH)
@@ -119,9 +118,6 @@ def main():
             #GPIO.output(RELAY_1_PIN, GPIO.LOW)
             time.sleep(4)
 
-    #client1.loop_forever()
-    #client2.loop_forever()
-    
 # Callback for when broker receives a message from client
 def on_sensor_message(client, userdata, message):
     print("raw binary data received: ", message)
