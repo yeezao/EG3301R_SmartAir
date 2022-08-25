@@ -9,7 +9,7 @@ from SensorDataProcessor import SensorDataProcessor
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
 NUM_OF_SENSORS = 1
-BROKER_IP = "192.168.81.101"
+BROKER_IP = "192.168.144.101"
 MQTT_PORT = 1883
 
 
@@ -108,13 +108,12 @@ def main():
             print("All sensors have transmitted data - beginning processing") 
             data_in_processing = True
             process_sensor_data()
-            time.sleep(2)
             sensor_dict.clear()
             print("Sensor dict cleared")
             data_in_processing = False
         else:
             print("Not all sensor data received")
-            time.sleep(30)
+            time.sleep(2)
 
 # Callback for when broker receives a message from client
 def on_sensor_message(client, userdata, message):

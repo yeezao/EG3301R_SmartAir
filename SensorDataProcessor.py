@@ -23,9 +23,9 @@ class SensorDataProcessor:
         avg_c02 = self.avg_list(c02_list)
         avg_voc = self.avg_list(voc_list)
 
-        if avg_c02 >= 400:
+        if avg_c02 >= 1300:
             action_dict[RELAY_1] = 1
-        elif avg_c02 <= 300:
+        elif avg_c02 <= 600:
             action_dict[RELAY_1] = -1
 
         if avg_voc >= 3:
