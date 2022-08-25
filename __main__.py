@@ -12,7 +12,7 @@ NUM_OF_SENSORS = 1
 BROKER_IP = "192.168.144.101"
 MQTT_PORT = 1883
 
-
+#client1 - Pi Client
 # Using GPIO Pin 5 (29) for Relay 1 and GPIO Pin 6 (31) for Relay 2
 
 FILTER = "filter"
@@ -22,8 +22,6 @@ RELAY_1_PIN = 29
 RELAY_2_PIN = 31
 
 
-global client1  #client with sensor and IR blaster
-global client2  #client with sensor and relay
 sensor_dict = {}
 action_dict = {}
 
@@ -33,7 +31,6 @@ def json_serialize_add(client, message):
     dic = json.loads(message)
     sensor_dict[client] = dic
     print(sensor_dict)
-
 
 # encode action data to json string
 def json_deserialise(object):
