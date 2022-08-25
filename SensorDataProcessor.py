@@ -1,4 +1,4 @@
-import time
+import CsvReaderWriter
 
 FILTER = "filter"
 RELAY_1 = "relay1"
@@ -14,31 +14,43 @@ class SensorDataProcessor:
 
         c02_list = []
         voc_list = []
+        temp_list = []
+        humidity_list = []
 
         for client_obj, sensor_indiv_dict in sensor_dict.items():
-            temp_dict = sensor_indiv_dict
             c02_list.append(sensor_indiv_dict["CO2"])
             voc_list.append(sensor_indiv_dict["TVOC"])
+            temp_list.append(sensor_indiv_dict["Temperature"])
+            humidity_list.append(sensor_indiv_dict["Temperature"])
 
         avg_c02 = self.avg_list(c02_list)
         avg_voc = self.avg_list(voc_list)
+        avg_temp = self.avg_list(temp_list)
+        avg_humidity = self.avg_list(humidity_list)
+        avg_dict = {"temp": avg_temp, "humudity": avg_humidity, "c02": avg_c02, "voc": avg_voc}
 
-        if avg_c02 >= 1300:
-            action_dict[RELAY_1] = 1
-        elif avg_c02 <= 600:
-            action_dict[RELAY_1] = -1
+        crw = CsvReaderWriter()
+        crw.start_write(avg_dict)
 
-        if avg_voc >= 3:
-            action_dict[FILTER] = 3
-        elif avg_voc >= 2:
-            action_dict[FILTER] = 2
-        elif avg_voc >= 1:
-            action_dict[FILTER] = 1
-
+        self.determine_action(action_dict, avg_dict)
 
         action_dict["relay2"] = "test"
         print(action_dict)
         return action_dict
+
+    def determine_action(self, action_dict, avg_dict):
+        if avg_dict["co2"] >= 1300:
+            action_dict[RELAY_1] = 1
+        elif avg_dict["co2"] <= 600:
+            action_dict[RELAY_1] = -1
+
+        if avg_dict["voc"] >= 3:
+            action_dict[FILTER] = 3
+        elif avg_dict["voc"] >= 2:
+            action_dict[FILTER] = 2
+        elif avg_dict["voc"] >= 1:
+            action_dict[FILTER] = 1
+
 
     def avg_list(self, aqlist):
         return sum(aqlist) / len(aqlist)
