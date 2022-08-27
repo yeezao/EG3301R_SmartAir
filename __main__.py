@@ -12,7 +12,7 @@ NUM_OF_SENSORS = 1
 BROKER_IP = "192.168.144.101"
 MQTT_PORT = 1883
 
-#client1 - Pi Client
+# client1 - Pi Client
 # Using GPIO Pin 5 (29) for Relay 1 and GPIO Pin 6 (31) for Relay 2
 
 FILTER = "filter"
