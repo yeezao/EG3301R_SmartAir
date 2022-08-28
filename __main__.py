@@ -9,8 +9,8 @@ from SensorDataProcessor import SensorDataProcessor
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
 NUM_OF_SENSORS = 1
-BROKER_IP = "192.168.144.101"
-MQTT_PORT = 1883
+BROKER_IP = "192.168.31.149"
+MQTT_PORT = 1883"
 
 # client1 - Pi Client
 # Using GPIO Pin 5 (29) for Relay 1 and GPIO Pin 6 (31) for Relay 2
