@@ -34,6 +34,9 @@ class SensorDataProcessor:
 
         self.determine_action(action_dict, avg_dict)
 
+        action_dict_csv = {"fan_action": action_dict[RELAY_1], "filter_action": action_dict[FILTER]}
+        crw.start_write(action_dict_csv)
+
         action_dict["relay2"] = "test"
         print(action_dict)
         return action_dict
@@ -50,7 +53,6 @@ class SensorDataProcessor:
             action_dict[FILTER] = 2
         elif avg_dict["voc"] >= 1:
             action_dict[FILTER] = 1
-
 
     def avg_list(self, aqlist):
         return sum(aqlist) / len(aqlist)
