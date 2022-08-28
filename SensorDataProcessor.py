@@ -1,4 +1,4 @@
-import CsvReaderWriter
+from CsvReaderWriter import CsvReaderWriter
 
 FILTER = "filter"
 RELAY_1 = "relay1"
@@ -20,14 +20,14 @@ class SensorDataProcessor:
         for client_obj, sensor_indiv_dict in sensor_dict.items():
             c02_list.append(sensor_indiv_dict["CO2"])
             voc_list.append(sensor_indiv_dict["TVOC"])
-            temp_list.append(sensor_indiv_dict["Temperature"])
-            humidity_list.append(sensor_indiv_dict["Temperature"])
+            temp_list.append(sensor_indiv_dict["Temp"])
+            humidity_list.append(sensor_indiv_dict["Humidity"])
 
         avg_c02 = self.avg_list(c02_list)
         avg_voc = self.avg_list(voc_list)
         avg_temp = self.avg_list(temp_list)
         avg_humidity = self.avg_list(humidity_list)
-        avg_dict = {"temp": avg_temp, "humudity": avg_humidity, "c02": avg_c02, "voc": avg_voc}
+        avg_dict = {"temp": avg_temp, "humidity": avg_humidity, "co2": avg_c02, "voc": avg_voc}
 
         crw = CsvReaderWriter()
         crw.start_write(avg_dict)
