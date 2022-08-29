@@ -12,6 +12,7 @@ class CsvReaderWriter:
         pass
 
     def start_write(self, dict):
+        print("starting write for ", dict)
         if not file_exists(AQ_CSV_PATH):
             os.makedirs(os.path.dirname(AQ_CSV_PATH), exist_ok=True)
             file = open(AQ_CSV_PATH, 'a')

@@ -10,7 +10,7 @@ MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
 NUM_OF_SENSORS = 1
 BROKER_IP = "192.168.31.149"
-MQTT_PORT = 1883"
+MQTT_PORT = 1883
 
 # client1 - Pi Client
 # Using GPIO Pin 5 (29) for Relay 1 and GPIO Pin 6 (31) for Relay 2
@@ -74,10 +74,10 @@ def process_sensor_data():
 
 def send_actions(action_dict):
     print(action_dict)
-    if (action_dict[FILTER]):
+    if (action_dict[FILTER] != 0):
         print("sending action ", action_dict[FILTER], " to Arduino")
         client1.publish(MQTT_TOPIC_PUB, json_deserialise({FILTER: action_dict[FILTER]}))
-    if (action_dict[RELAY_1] or action_dict[RELAY_2]):
+    if (action_dict[RELAY_1] != 0 or action_dict[RELAY_2] != 0):
         process_relay_action(action_dict)
 
 def process_relay_action(action_dict):

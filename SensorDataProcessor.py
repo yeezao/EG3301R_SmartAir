@@ -42,17 +42,19 @@ class SensorDataProcessor:
         return action_dict
 
     def determine_action(self, action_dict, avg_dict):
-        if avg_dict["co2"] >= 1300:
+        if avg_dict["co2"] >= 2000 or avg_dict["voc"] > 2000:
             action_dict[RELAY_1] = 1
-        elif avg_dict["co2"] <= 600:
+        elif avg_dict["co2"] <= 600 and avg_dict["voc"] < 1500:
             action_dict[RELAY_1] = -1
 
-        if avg_dict["voc"] >= 3:
-            action_dict[FILTER] = 3
-        elif avg_dict["voc"] >= 2:
-            action_dict[FILTER] = 2
-        elif avg_dict["voc"] >= 1:
+        #if avg_dict["voc"] >= 3:
+        #    action_dict[FILTER] = 3
+        #elif avg_dict["voc"] >= :
+        #    action_dict[FILTER] = 2
+        if avg_dict["voc"] >= 1000:
             action_dict[FILTER] = 1
+        elif avg_dict["voc"] < 800:
+            action_dict[FILTER] = -1
 
     def avg_list(self, aqlist):
         return sum(aqlist) / len(aqlist)
