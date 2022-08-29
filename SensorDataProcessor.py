@@ -1,3 +1,4 @@
+import logging
 from CsvReaderWriter import CsvReaderWriter
 
 FILTER = "filter"
@@ -27,15 +28,15 @@ class SensorDataProcessor:
         avg_voc = self.avg_list(voc_list)
         avg_temp = self.avg_list(temp_list)
         avg_humidity = self.avg_list(humidity_list)
-        avg_dict = {"temp": avg_temp, "humidity": avg_humidity, "co2": avg_c02, "voc": avg_voc}
-
-        crw = CsvReaderWriter()
-        crw.start_write(avg_dict)
+        avg_dict = {"Temp": avg_temp, "Humidity": avg_humidity, "CO2": avg_c02, "TVOC": avg_voc}
 
         self.determine_action(action_dict, avg_dict)
 
         action_dict_csv = {"fan_action": action_dict[RELAY_1], "filter_action": action_dict[FILTER]}
-        crw.start_write(action_dict_csv)
+        
+        crw = CsvReaderWriter()
+        crw.start_write(avg_dict.update(action_dict_csv))
+        del crw
 
         action_dict["relay2"] = "test"
         print(action_dict)

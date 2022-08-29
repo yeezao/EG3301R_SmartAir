@@ -1,10 +1,11 @@
+import logging
 import csv
 from os.path import exists as file_exists
 import os
 from datetime import datetime
 
 AQ_CSV_PATH = 'data/aq_readings.csv'
-CSV_HEADERS = ['date', 'time', 'temp', 'humidity', 'co2', 'voc', 'fan_action', 'filter_action']
+CSV_HEADERS = ['date', 'time', 'Temp', 'Humidity', 'CO2', 'TVOC', 'fan_action', 'filter_action']
 
 class CsvReaderWriter:
 
@@ -12,7 +13,7 @@ class CsvReaderWriter:
         pass
 
     def start_write(self, dict):
-        print("starting write for ", dict)
+        logging.debug("starting write for ", dict)
         if not file_exists(AQ_CSV_PATH):
             os.makedirs(os.path.dirname(AQ_CSV_PATH), exist_ok=True)
             file = open(AQ_CSV_PATH, 'a')
