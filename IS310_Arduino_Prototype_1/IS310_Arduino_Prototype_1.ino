@@ -1,3 +1,4 @@
+#include <IRremote.h>
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <PubSubClient.h>
@@ -12,21 +13,24 @@ dht11 DHT;
 //dht11 DHT;
 DFRobot_CCS811 CCS811;
 
-const char* wifi_ssid = "Redmi Note 9S_1993";
-const char* wifi_pw = "password123";
+const char* wifi_ssid = "Xiaomi_ED47";
+const char* wifi_pw = "Lyz1999/2";
 
-const char* mqtt_broker_ip = "192.168.81.101";
+const char* mqtt_broker_ip = "192.168.31.149";
 const char* mqtt_pub_topic = "sensordata";
 const char* mqtt_sub_topic = "filter_action";
 const char* mqtt_clientid = "sensor";
 const char* mqtt_port = 1883;
 
+unsigned long start = 0;
+
 WiFiClient wificlient;
 PubSubClient client(mqtt_broker_ip, 1883, wificlient);
 
 #define DECODE_NEC
-#define DHT11_PIN 2
-#define RECV_PIN 3;
+#define DHT11_PIN 12
+#define RECV_PIN 3
+#define IR_TX_PIN 13
 
 #define SENSOR_DELAY 10000
 
@@ -46,9 +50,9 @@ IRrecv irrecv(RECV_PIN);
 decode_results results;
 
 
-void transmit_data(DFRobot_CCS811 CCS811) {
+void transmit_data(DFRobot_CCS811 CCS811, dht11 DHT) {
 
-  String json = encode_json(CCS811);
+  String json = encode_json(CCS811, DHT);
   int ret = client.publish(mqtt_pub_topic, json.c_str());
   Serial.println(ret);
   if (!ret) {
@@ -133,7 +137,15 @@ void on_mqtt_message(char* topic, byte* payload, unsigned int length) {
 }
 
 void send_ir(int action) {
-  
+  if (action > 0 && filter_state <= FILTER_OFF) {
+    Serial.println("Turning filter ON");
+    IrSender.sendNEC(0xAF51, 0x8, true, 0);
+    filter_state = action;
+  } else if (action <= FILTER_OFF) {
+    Serial.println("Turning filter OFF");
+    IrSender.sendNEC(0xAF51, 0x0, true, 0);
+    filter_state = action;
+  }
 }
 
 void setup_wifi() {
@@ -157,6 +169,7 @@ void setup_mqtt() {
   client.setServer(mqtt_broker_ip, mqtt_port);
   client.subscribe(mqtt_sub_topic);
   client.setCallback(on_mqtt_message);
+  Serial.println("mqtt connected and subscribed");
 }
 
 void setup(void)
@@ -172,6 +185,7 @@ void setup(void)
     
     setup_wifi();
     setup_mqtt();
+    IrSender.begin(IR_TX_PIN);
 }
 
 void loop() {
@@ -183,8 +197,8 @@ void loop() {
         IrReceiver.resume(); // Enable receiving of the next value
   }
 
-  unsigned long start = millis();           
-  if (millis() - start >= 10000) {
+  if (millis() - start >= 1000) {
+    Serial.print("starting sensor reads");
     read_aq_data();
     start = millis();
   }
