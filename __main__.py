@@ -13,7 +13,7 @@ import RPi.GPIO as GPIO
 
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
-NUM_OF_SENSORS = 1
+NUM_OF_SENSORS = 3
 BROKER_IP = "192.168.31.149"
 MQTT_PORT = 1883
 
@@ -27,7 +27,7 @@ RELAY_1 = "relay1"
 RELAY_2 = "relay2"
 RELAY_1_PIN = 29
 RELAY_2_PIN = 31
-TIMEBLOCK_PERIOD = 60 # 1 minute block period between actions
+TIMEBLOCK_PERIOD = 15 # 1 minute block period between actions
 
 
 sensor_dict = {}
@@ -134,25 +134,29 @@ def main():
     
     setup()
 
-    data_in_processing = False
+    sensor_dict_multipleperiods = {}
+
+    #data_in_processing = False
     timeblock_start = datetime.now()
 
     while(1):
         if (len(sensor_dict) == NUM_OF_SENSORS and has_timeblock_expired(timeblock_start)):
             logging.info("All sensors have transmitted data and timeblock has expired - beginning processing")
-            PrettyPrint.print_sensor_data(sensor_dict)
-            data_in_processing = True
+            PrettyPrint.print_sensor_data(sensor_dict_multipleperiods)
+            #data_in_processing = True
             process_sensor_data()
             sensor_dict.clear()
             logging.info("Sensor dict cleared")
-            data_in_processing = False
+            #data_in_processing = False
             timeblock_start = datetime.now
         elif (len(sensor_dict) == NUM_OF_SENSORS):
             logging.debug("All sensors have transmitted data, but timeblock has not expired - saving sensor data to csv")
             crw = CsvReaderWriter()
+            sensor_dict_multipleperiods[datetime.now()] = sensor_dict
             for sensor_dict_indiv in sensor_dict.items():
                 crw.start_write(sensor_dict_indiv)   
             del crw
+            sensor_dict.clear()
         else:
             logging.debug("Not all sensor data received, waiting to receive all data. Only ", len(sensor_dict), "sensors have transmitted")
         time.sleep(15)
