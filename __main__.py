@@ -37,7 +37,7 @@ action_dict = {}
 def json_serialize_add(client, message):
     dic = json.loads(message)
     sensor_dict[client] = dic
-    #logging.info("JSON message serialised into ", sensor_dict[client], " for client ", client)
+    print("JSON message serialised into ", sensor_dict[client], " for client ", client)
     #print(sensor_dict)
 
 # encode action data to json string
@@ -144,9 +144,10 @@ def main():
     while(1):
         if (len(sensor_dict) == NUM_OF_SENSORS and has_timeblock_expired(timeblock_start)):
             logging.info("All sensors have transmitted data and timeblock has expired - beginning processing")
-            PrettyPrint.print_sensor_data(sensor_dict_multipleperiods)
+            #PrettyPrint.print_sensor_data(sensor_dict_multipleperiods)
             #data_in_processing = True
             process_sensor_data()
+            sensor_dict = sensor_dict.copy()
             sensor_dict.clear()
             #logging.info("Sensor dict cleared")
             #data_in_processing = False
@@ -159,6 +160,8 @@ def main():
                 #print(sensor_dict_indiv)
                 crw.start_write(sensor_dict_indiv)   
             del crw
+            sensor_dict_multipleperiods[datetime.now()] = sensor_dict
+            sensor_dict = sensor_dict.copy()
             sensor_dict.clear()
         else:
             #logging.debug("Not all sensor data received, waiting to receive all data. Only ", len(sensor_dict), "sensors have transmitted")
