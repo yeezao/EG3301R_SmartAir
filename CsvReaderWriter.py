@@ -30,8 +30,7 @@ class CsvReaderWriter:
     def open_file(self, file, dict):
         writer = csv.DictWriter(file, CSV_HEADERS)
         datetime_dict = self.get_now()
-        dict.update(datetime_dict)
-        writer.writerow(dict)
+        writer.writerow({**dict, **datetime_dict})
 
     def get_now(self):
         now = datetime.now()
