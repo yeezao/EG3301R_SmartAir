@@ -12,12 +12,13 @@ import program_constants as pc
 
 sensor_dict = {}
 action_dict = {}
+sensor_dict_multipleperiods = {}
 
 # decode json string into objects and add to sensor_dictionary
 def json_serialize_add(client, message):
     dic = json.loads(message)
-    sensor_dict[client] = dic
-    print("JSON message serialised into ", sensor_dict[client], " for client ", client)
+    sensor_dict[dic["id"]] = dic
+    print("JSON message serialised into ", sensor_dict[dic["id"]], " for client ", client)
     #print(sensor_dict)
 
 # encode action data to json string
@@ -73,7 +74,7 @@ def setup():
 # Instantiates a SensorDataProcessor object and sends its output to publish actions
 def process_sensor_data():
     sensor_data_processor = SensorDataProcessor()
-    action_dict = sensor_data_processor.process_data(sensor_dict)
+    action_dict = sensor_data_processor.process_data(sensor_dict_multipleperiods)
     #logging.info("action dict is ", action_dict)
     send_actions(action_dict)
     del sensor_data_processor
@@ -81,7 +82,7 @@ def process_sensor_data():
 # Sends actions to GPIO and Arduino
 def send_actions(action_dict):
     #print(action_dict)
-    if (action_dict[pc.FILTERR] != 0):
+    if (action_dict[pc.FILTER] != 0):
         #logging.info("sending action ", action_dict[FILTER], " to Arduino")
         PrettyPrint.print_action_data_filter(action_dict)
         client1.publish(pc.MQTT_TOPIC_PUB, json_deserialise({pc.FILTER: action_dict[pc.FILTER]}))
@@ -113,32 +114,34 @@ def has_timeblock_expired(timeblock_start):
         return False
 
 
+def write_to_csv(): 
+    crw = CsvReaderWriter()
+    PrettyPrint.print_sensor_data(sensor_dict)
+    for sensor_dict_indiv in sensor_dict.values():
+        #print(sensor_dict_indiv)
+        crw.start_write(sensor_dict_indiv)   
+    del crw
+
 def main():
     
-    setup()
-    sensor_dict_multipleperiods = {}
-
-    
+    setup()    
     timeblock_start = datetime.now()
 
     while(1):
-        if (len(sensor_dict) >  0 and has_timeblock_expired(timeblock_start)):
+        if (len(sensor_dict) == pc.NUM_OF_SENSORS and has_timeblock_expired(timeblock_start)):
             logging.info("All sensors have transmitted data and timeblock has expired - beginning processing")
             #PrettyPrint.print_sensor_data(sensor_dict_multipleperiods)
+            write_to_csv()
             process_sensor_data()
+            sensor_dict.clear()
             sensor_dict_multipleperiods.clear()
             #logging.info("Sensor dict cleared")
             timeblock_start = datetime.now()
         elif (len(sensor_dict) == pc.NUM_OF_SENSORS):
             #logging.debug("All sensors have transmitted data, but timeblock has not expired - saving sensor data to csv")
-            PrettyPrint.print_sensor_data(sensor_dict)
-            crw = CsvReaderWriter()
-            PrettyPrint.print_sensor_data(sensor_dict)
-            for sensor_dict_indiv in sensor_dict.values():
-                #print(sensor_dict_indiv)
-                crw.start_write(sensor_dict_indiv)   
-            del crw
+            write_to_csv()
             sensor_dict_multipleperiods[datetime.now()] = sensor_dict.copy()
+            print(sensor_dict_multipleperiods)
             sensor_dict.clear()
         else:
             #logging.debug("Not all sensor data received, waiting to receive all data. Only ", len(sensor_dict), "sensors have transmitted")

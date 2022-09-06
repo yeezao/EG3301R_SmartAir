@@ -30,7 +30,7 @@ class SensorDataProcessor:
         action_dict_csv = {"fan_action": action_dict[pc.RELAY_1], "filter_action": action_dict[pc.FILTER]}
         
         crw = CsvReaderWriter()
-        crw.start_write({**avg_dict, **action_dict_csv})
+        crw.start_write({**total_avg_dict, **action_dict_csv})
         del crw
 
         action_dict["relay2"] = "test"

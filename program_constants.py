@@ -7,11 +7,11 @@ TIMEBLOCK_PERIOD = 15 # 15sec block period between actions
 
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
-NUM_OF_SENSORS = 3
-BROKER_IP = "192.168.31.149"
+NUM_OF_SENSORS = 2
+BROKER_IP = "192.168.229.101"
 MQTT_PORT = 1883
 
 LOG_FILEPATH = 'log/smartair_main.log'
 
 AQ_CSV_PATH = 'data/aq_readings.csv'
-CSV_HEADERS = ['date', 'time', 'Temp', 'Humidity', 'CO2', 'TVOC', 'fan_action', 'filter_action']
+CSV_HEADERS = ['date', 'time', 'id', 'Temp', 'Humidity', 'CO2', 'TVOC', 'fan_action', 'filter_action']
