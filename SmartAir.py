@@ -2,7 +2,6 @@ from datetime import date, datetime
 import os
 import logging
 import paho.mqtt.client as mqtt
-import paho.mqtt.publish as mqtt_publish
 import json
 import time
 from CsvReaderWriter import CsvReaderWriter
