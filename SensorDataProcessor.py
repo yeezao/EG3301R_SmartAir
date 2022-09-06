@@ -14,6 +14,8 @@ class SensorDataProcessor:
     def process_data(self, sensor_dict_multipleperiods):
         action_dict = {FILTER: 0, RELAY_1: 0, RELAY_2: 0}
 
+        print(sensor_dict_multipleperiods)
+        
         c02_list = []
         voc_list = []
         temp_list = []

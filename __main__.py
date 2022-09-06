@@ -13,7 +13,7 @@ import RPi.GPIO as GPIO
 
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
-NUM_OF_SENSORS = 3
+NUM_OF_SENSORS = 2
 BROKER_IP = "192.168.31.149"
 MQTT_PORT = 1883
 
@@ -29,16 +29,17 @@ RELAY_1_PIN = 29
 RELAY_2_PIN = 31
 TIMEBLOCK_PERIOD = 15 # 15sec block period between actions
 
-
+global sensor_dict 
 sensor_dict = {}
 action_dict = {}
 
 # decode json string into objects and add to sensor_dictionary
 def json_serialize_add(client, message):
     dic = json.loads(message)
-    sensor_dict[client] = dic
-    print("JSON message serialised into ", sensor_dict[client], " for client ", client)
-    #print(sensor_dict)
+    print(dic)
+    sensor_dict[dic["id"]] = dic
+    #print("JSON message serialised into ", sensor_dict[client], " for client ", client)
+    print(sensor_dict)
 
 # encode action data to json string
 def json_deserialise(object):
@@ -82,7 +83,7 @@ def setup():
 
     global client1
     client1 = mqtt.Client(client_id="pi_data_processor")
-    #logging.info("MQTT Client instantiated, client object is ", client1)
+    print("MQTT Client instantiated, client object is ", client1)
     client1.on_message = on_sensor_message
     client1.on_publish = on_publish
     connect_to_broker(client1)
@@ -132,16 +133,20 @@ def has_timeblock_expired(timeblock_start):
 
 def main():
     
+    
     PrettyPrint.setup_message()
     setup()
     PrettyPrint.setup_complete()
 
     sensor_dict_multipleperiods = {}
+    sensor_dict = {}
 
     #data_in_processing = False
     timeblock_start = datetime.now()
 
     while(1):
+        print(len(sensor_dict), sensor_dict)
+        print(sensor_dict_multipleperiods)
         if (len(sensor_dict) == NUM_OF_SENSORS and has_timeblock_expired(timeblock_start)):
             logging.info("All sensors have transmitted data and timeblock has expired - beginning processing")
             #PrettyPrint.print_sensor_data(sensor_dict_multipleperiods)
@@ -170,7 +175,7 @@ def main():
 # Callback for when broker receives a message from client
 def on_sensor_message(client, userdata, message):
     #logging.debug("raw binary data received: ", message)
-    #logging.info("JSON Message received from Sensor ", str(message.payload.decode("utf-8")))
+    print("JSON Message received from Sensor ", str(message.payload.decode("utf-8")))
     json_serialize_add(client, str(message.payload.decode("utf-8")))
 
 # Callback to print error if connection fails
