@@ -1,4 +1,6 @@
 FILTER = "filter"
+
+# Using GPIO Pin 5 (29) for Relay 1 and GPIO Pin 6 (31) for Relay 2
 RELAY_1 = "relay1"
 RELAY_2 = "relay2"
 RELAY_1_PIN = 29
