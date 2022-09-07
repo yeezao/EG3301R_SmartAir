@@ -1,10 +1,7 @@
 from datetime import datetime
 import logging
 from CsvReaderWriter import CsvReaderWriter
-
-FILTER = "filter"
-RELAY_1 = "relay1"
-RELAY_2 = "relay2"
+import program_constants as pc
 
 class SensorDataProcessor:
 
@@ -12,8 +9,10 @@ class SensorDataProcessor:
         pass
 
     def process_data(self, sensor_dict_multipleperiods):
-        action_dict = {FILTER: 0, RELAY_1: 0, RELAY_2: 0}
+        action_dict = {pc.FILTER: 0, pc.RELAY_1: 0, pc.RELAY_2: 0}
 
+        print(sensor_dict_multipleperiods)
+        
         c02_list = []
         voc_list = []
         temp_list = []
@@ -28,10 +27,10 @@ class SensorDataProcessor:
 
         self.determine_action(action_dict, total_avg_dict)
 
-        action_dict_csv = {"fan_action": action_dict[RELAY_1], "filter_action": action_dict[FILTER]}
+        action_dict_csv = {"fan_action": action_dict[pc.RELAY_1], "filter_action": action_dict[pc.FILTER]}
         
         crw = CsvReaderWriter()
-        crw.start_write({**avg_dict, **action_dict_csv})
+        crw.start_write({**total_avg_dict, **action_dict_csv})
         del crw
 
         action_dict["relay2"] = "test"
@@ -59,18 +58,18 @@ class SensorDataProcessor:
 
     def determine_action(self, action_dict, avg_dict):
         if avg_dict["CO2"] >= 1300 or avg_dict["TVOC"] > 2000:
-            action_dict[RELAY_1] = 1
+            action_dict[pc.RELAY_1] = 1
         elif avg_dict["CO2"] <= 1050 and avg_dict["TVOC"] < 1500:
-            action_dict[RELAY_1] = -1
+            action_dict[pc.RELAY_1] = -1
 
         #if avg_dict["voc"] >= 3:
         #    action_dict[FILTER] = 3
         #elif avg_dict["voc"] >= :
         #    action_dict[FILTER] = 2
         if avg_dict["TVOC"] >= 1000:
-            action_dict[FILTER] = 1
+            action_dict[pc.FILTER] = 1
         elif avg_dict["TVOC"] < 800:
-            action_dict[FILTER] = -1
+            action_dict[pc.FILTER] = -1
 
     def avg_list(self, aqlist):
         return sum(aqlist) / len(aqlist)
