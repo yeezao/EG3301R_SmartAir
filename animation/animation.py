@@ -13,6 +13,7 @@ from matplotlib.animation import FFMpegWriter
 co2 =[]
 voc =[]
 time=[]
+paramDict={"co2":co2,"voc":voc}
 
 #sunday csv format read
 def readAQ (csvname):
@@ -37,6 +38,7 @@ def readAQ (csvname):
                 voc.append(float(row[5]))
                 line_count += 1
 
+#normal csv format read
 def readAQ1 (csvname):
     with open(csvname) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -79,34 +81,36 @@ def animate(i,yArr):
 #     ax.set_xlim([0,830])
 #     ax.set_ylim([0,2050])
 
-readSheet="aq_readings_300822_s42.csv"
-toMeasure=[voc]
-f = r"c://Users/liewy/Desktop/animation/s4_2voc.mp4"
+#readSheet="aq_readings_300822_s42.csv"
+#toMeasure=[voc]
+#f = r"c://Users/liewy/Desktop/animation/s4_2voc.mp4"
 # toMeasure=[co2]
 # f = r"c://Users/liewy/Desktop/animation/s4_2co2.mp4"
+if __name__ == "__main__":
+    print("Read from: ")
+    readSheet=input()
+    print("Read param: ")
+    toMeasure = [paramDict[input()]]
+    print ("Save to: ")
+    f = r"./" + input() +".mp4"
+    readAQ1(readSheet)
+    print(time)
+    print(toMeasure)
+    print("Time points: "+str(len(time)))
+    print("VOC points: "+str(len(voc)))
+    print("CO2 points: "+str(len(co2)))
+    print("Last VOC point: "+str(voc[-1]))
+    print("Last CO2 point: "+str(co2[-1]))
+    print("Last Time point: "+str(time[-1]))
 
-readAQ1(readSheet)
-print(time)
-print(co2)
-print("Time points: "+str(len(time)))
-print("VOC points: "+str(len(voc)))
-print("CO2 points: "+str(len(co2)))
-print("Last VOC point: "+str(voc[-1]))
-print("Last CO2 point: "+str(co2[-1]))
-print("Last Time point: "+str(time[-1]))
-
-# run the animation
-ani = FuncAnimation(fig, animate, frames=len(time),fargs=toMeasure,interval=100, repeat=False)
-plt.show()
-
+    # run the animation
+    ani = FuncAnimation(fig, animate, frames=len(time),fargs=toMeasure,interval=100, repeat=False)
+    plt.show()
+    writervideo = animation.FFMpegWriter(fps=60) 
+    ani.save(f, writer=writervideo)
+    plt.close()
 #save ani
-
-
-
 # writergif = animation.PillowWriter(fps=30) 
 # ani.save(f, writer=writergif)
 
-
-writervideo = animation.FFMpegWriter(fps=60) 
-ani.save(f, writer=writervideo)
 
