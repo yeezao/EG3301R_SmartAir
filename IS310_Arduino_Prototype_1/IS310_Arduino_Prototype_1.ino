@@ -23,6 +23,7 @@ const char* mqtt_clientid = "sensor";
 const char* mqtt_port = 1883;
 
 unsigned long start = 0;
+unsigned long start_reset = 0;
 
 WiFiClient wificlient;
 PubSubClient client(mqtt_broker_ip, 1883, wificlient);
@@ -68,6 +69,7 @@ String encode_json(DFRobot_CCS811 CCS811, dht11 DHT11) {
   StaticJsonDocument<200> jsondoc;
   jsondoc["CO2"] = CCS811.getCO2PPM();
   jsondoc["TVOC"] = CCS811.getTVOCPPB();
+  jsondoc["id"] = "3";
   jsondoc["Humidity"] = DHT11.humidity;
   jsondoc["Temp"] = DHT11.temperature-2;
   String output;
@@ -119,7 +121,6 @@ void read_aq_data() {
       Serial.print("ppm, TVOC: ");
       Serial.print(CCS811.getTVOCPPB());
       Serial.println("ppb");
-
       transmit_data(CCS811, DHT);
 
 } else {
@@ -197,10 +198,16 @@ void loop() {
         IrReceiver.resume(); // Enable receiving of the next value
   }
 
-  if (millis() - start >= 1000) {
+  if (millis() - start >= 2000) {
     Serial.print("starting sensor reads");
     read_aq_data();
     start = millis();
+  }
+
+  if (millis() - start_reset >= 120000) {
+    Serial.print("restting baseline");
+    CCS811.writeBaseLine(CCS811.readBaseLine());
+    start_reset = millis();
   }
   
 }
