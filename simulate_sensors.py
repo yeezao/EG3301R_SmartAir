@@ -15,5 +15,5 @@ client2.loop_start()
 while True:
     client1.publish(pc.MQTT_TOPIC_SUB, json.dumps({"id": 1, "Temp": 25, "Humidity": 80, "CO2":600,"TVOC":10}))
     time.sleep(0.1)
-    client1.publish(pc.MQTT_TOPIC_SUB, json.dumps({"id": 2, "Temp": 27, "Humidity": 60, "CO2":1000,"TVOC":11}))
+    client2.publish(pc.MQTT_TOPIC_SUB, json.dumps({"id": 2, "Temp": 27, "Humidity": 60, "CO2":1000,"TVOC":11}))
     time.sleep(2)
