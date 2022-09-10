@@ -8,109 +8,105 @@ from matplotlib.animation import FuncAnimation
 from matplotlib import animation
 import csv
 from matplotlib.animation import FFMpegWriter
+import pandas as pd
 
 
-co2 =[]
-voc =[]
-time=[]
-paramDict={"co2":co2,"voc":voc}
+def readCSV (csvname):
+    df=pd.read_csv(csvname)
+    return df
 
-#sunday csv format read
-def readAQ (csvname):
-    with open(csvname) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
-        startstamp=0
-        for row in csv_reader:
-            if line_count == 0: #dont read first line
-                line_count += 1
-            elif line_count % 2 == 0: #dont read blank lines
-                line_count +=1
-            else:
-                if line_count==1: #initialise start time
-                    timestamp=0
-                    startstamp=process(row[1])
-                    time.append(startstamp)
-                else:
-                    time.append(process(row[1])-startstamp)
-
-                co2.append(float(row[4]))
-                voc.append(float(row[5]))
-                line_count += 1
-
-#normal csv format read
-def readAQ1 (csvname):
-    with open(csvname) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
-        startstamp=0
-        for row in csv_reader:
-            if line_count == 0: #dont read first line
-                line_count += 1
-            else:
-                if line_count==1: #initialise start time
-                    timestamp=0
-                    startstamp=process(row[1])
-                    time.append(0)
-                else:
-                    time.append(process(row[1])-startstamp)
-
-                co2.append(float(row[4]))
-                voc.append(float(row[5]))
-                line_count += 1
-
-def process(timestamp):
+def timeToSeconds(timestamp):
     tempArr=timestamp.split(":")
     return int(tempArr[0])*3600+int(tempArr[1])*60 + int(tempArr[2])
 
+def makeArr(df,param):
+    outputlist = []
+    startTime = timeToSeconds(df["time"][0])
+    numSensors = int(df["id"].max())
+    for i in range (1,numSensors+1):
+        tempdf =df.loc[df['id'] == float(i)][["time",param]]
+        outputlist.append([tempdf["time"].apply(timeToSeconds).apply(lambda x : x- startTime).tolist(),tempdf[param].tolist()])
+    return outputlist
 
-# create the figure and axes objects
-fig, ax = plt.subplots()
+def makeActionsArr(df):
+    output = []
+    startTime = timeToSeconds(df["time"][0])
+    tempdf =df.loc[df['fan_action'] != ""][["time","fan_action"]]
+    output.append([tempdf["time"].apply(timeToSeconds).apply(lambda x : x- startTime).tolist(),tempdf["fan_action"].tolist()])
+    tempdf =df.loc[df['filter_action'] != ""][["time","filter_action"]]
+    output.append([tempdf["time"].apply(timeToSeconds).apply(lambda x : x- startTime).tolist(),tempdf["filter_action"].tolist()])
+    flag =1
+    fanTimes = []
+    for i in range(len(output[0][1])):
+        if output[0][1][i]==flag:
+            fanTimes.append([output[0][0][i]])
+            flag = flag * -1
+    filterTimes = []
+    for i in range(len(output[1][1])):
+        if output[1][1][i]==flag:
+            filterTimes.append([output[1][0][i]])
+            flag = flag * -1
+    return [fanTimes,filterTimes]
 
-#function that draws each frame of the animation
-def animate(i,yArr):
+
+
+
+
+
+
+#function that draws each frame of the animation takes in arrays to be plotted [[x1,y1],[x2,y2]] 
+def animate(i,dataArr,actionsArr):
     ax.clear()
-    ax.plot(time[0:i], yArr[0:i])
-    ax.set_xlim([0,max(time)+30])
-    ax.set_ylim([0,5000])
+    for r in range (len(dataArr)):
+        ax.plot(dataArr[r][0][:i],dataArr[r][1][:i] , label="sensor {}".format(r))
+    for j in actionsArr[0]:
+        if j[0]< dataArr[0][0][i]:
+            ax.axvline(x = j[0], color = 'b', label = 'axvline - full height')
+    for k in actionsArr[1]:
+        if k[0]< dataArr[0][0][i]:
+            ax.axvline(x = k[0], color = 'r', label = 'axvline - full height')
+    ax.set_xlim([0,max(dataArr[0][0])+30])
+    ax.set_ylim([0,max(dataArr[0][1])+30])
 
 
-# def animate(i):
-#     ax.clear()
-#     ax.plot(time[0:i], co2[0:i])
-#     ax.set_xlim([0,830])
-#     ax.set_ylim([0,2050])
-
-#readSheet="aq_readings_300822_s42.csv"
-#toMeasure=[voc]
-#f = r"c://Users/liewy/Desktop/animation/s4_2voc.mp4"
-# toMeasure=[co2]
-# f = r"c://Users/liewy/Desktop/animation/s4_2co2.mp4"
 if __name__ == "__main__":
     print("Read from: ")
     readSheet=input()
     print("Read param: ")
-    toMeasure = [paramDict[input()]]
+    param = input()
     print ("Save to: ")
     f = r"./" + input() +".mp4"
-    readAQ1(readSheet)
-    print(time)
-    print(toMeasure)
-    print("Time points: "+str(len(time)))
-    print("VOC points: "+str(len(voc)))
-    print("CO2 points: "+str(len(co2)))
-    print("Last VOC point: "+str(voc[-1]))
-    print("Last CO2 point: "+str(co2[-1]))
-    print("Last Time point: "+str(time[-1]))
-
-    # run the animation
-    ani = FuncAnimation(fig, animate, frames=len(time),fargs=toMeasure,interval=100, repeat=False)
+    dataframe = readCSV(readSheet)
+    dataArr = makeArr(dataframe, param)
+    actionsArr = makeActionsArr(dataframe)
+    fig, ax= plt.subplots()    
+    ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr], interval=10, repeat=False)
+    ax.legend(loc='best')
     plt.show()
-    writervideo = animation.FFMpegWriter(fps=60) 
-    ani.save(f, writer=writervideo)
+    ani.save(f, writer=animation.FFMpegWriter(fps=60) )
     plt.close()
-#save ani
+
+#test    
+# if __name__ == "__main__":
+#     print("Read from: ")
+#     readSheet="aq_readingsSept8.csv"
+#     print("Read param: ")
+#     param = "TVOC"
+#     print ("Save to: ")
+#     f = r"./" + "test" +".mp4"
+#     dataframe = readCSV(readSheet)
+#     dataArr = makeArr(dataframe, param)
+#     actionsArr = makeActionsArr(dataframe)
+#     print(actionsArr)
+#     fig, ax= plt.subplots()    
+#     ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr], interval=10, repeat=False)
+#     plt.show()
+#     ani.save(f, writer=animation.FFMpegWriter(fps=60) )
+#     plt.close()
+
+
+
+
+#save ani to gif
 # writergif = animation.PillowWriter(fps=30) 
 # ani.save(f, writer=writergif)
-
-
