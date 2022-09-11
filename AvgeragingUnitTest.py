@@ -15,7 +15,7 @@ class TestAvgeraging(unittest.TestCase):
         sensor_dict[3] = {"id": 1, "Temp": 26, "Humidity": 79, "CO2": 700, "TVOC": 15}
     
         sdp = SensorDataProcessor()
-        return_dict = sdp.append_and_findavg(sensor_dict)
+        return_dict = sdp.append_and_find(sensor_dict)
         self.assertEqual(return_dict["Temp"], 25)
         self.assertEqual(return_dict["Humidity"], 80)
         self.assertEqual(return_dict["CO2"], 600)
@@ -61,10 +61,10 @@ class TestAvgeraging(unittest.TestCase):
         sdp = SensorDataProcessor()
 
         for record_time, sensor_dict_singletime in sensor_dict_multipleperiods.items():
-            avg_dict[record_time] = sdp.append_and_findavg(sensor_dict_singletime)
+            avg_dict[record_time] = sdp.append_and_find(sensor_dict_singletime)
             print(avg_dict[record_time])
 
-        total_avg_dict = sdp.append_and_findavg(avg_dict)
+        total_avg_dict = sdp.append_and_find(avg_dict)
 
         #expected final avgs: 22, 81, 800, 30
         self.assertEqual(total_avg_dict["Temp"], 22)
