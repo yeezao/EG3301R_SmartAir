@@ -1,13 +1,8 @@
 # animated_line_plot.py
 
-from random import randint
-from tracemalloc import start
-
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import animation
-import csv
-from matplotlib.animation import FFMpegWriter
 import pandas as pd
 
 
@@ -80,9 +75,9 @@ def animate(i,dataArr,actionsArr,param):
                 ax.axvline(x = k[0], color = 'r', linestyle='dotted')
                 flag2 = flag2 *-1
     ax.set_xlim([0,max(dataArr[0][0])+30])
-    ax.set_ylim([0,PARAM_THRESHOLDS[param]])
+    ax.set_ylim([0,PARAM_AXES_LIM[param]])
 
-PARAM_THRESHOLDS = {"TVOC":3000, "CO2": 2000}
+PARAM_AXES_LIM = {"TVOC":3000, "CO2": 2000}
 
 if __name__ == "__main__":
     print("Read from: ")
