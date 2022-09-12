@@ -1,5 +1,5 @@
 #Mode 1 is averaging, Mode 2 is worst-case
-OPR_MODE = 1
+OPR_MODE = 2
 
 FILTER = "filter"
 
