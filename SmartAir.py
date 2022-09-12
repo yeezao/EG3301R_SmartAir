@@ -19,7 +19,7 @@ def json_serialize_add(client, message):
     dic = json.loads(message)
     sensor_dict[dic["id"]] = dic
     # logging.debug("JSON message serialised into ", sensor_dict[dic["id"]], " for client ", str(client))
-    #print(sensor_dict)
+    print(sensor_dict)
 
 # encode action data to json string
 def json_deserialise(object):
@@ -144,6 +144,7 @@ def main():
             sensor_dict.clear()
         else:
             # logging.debug("Not all sensor data received, waiting to receive all data. Only ", len(sensor_dict), "sensors have transmitted")
+            print("Not all sensor data received, waiting to receive all data. Only ", len(sensor_dict), "sensors have transmitted")
             time.sleep(5)
 
 # Callback for when broker receives a message from client

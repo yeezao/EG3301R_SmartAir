@@ -54,10 +54,10 @@ class SensorDataProcessor:
             return_temp = self.worst_case_list(temp_list)
             return_humidity = self.worst_case_list(humidity_list)
 
-        if add_to_rebaseline:
-            pc.co2_values_rebaseline.append(return_co2)
-            if (len(pc.co2_values_rebaseline) >= pc.NUM_OF_SENSORS * pc.REBASE_DURATION):
-                pass
+        # if add_to_rebaseline:
+        #     pc.co2_values_rebaseline.append(return_co2)
+        #     if (len(pc.co2_values_rebaseline) >= pc.NUM_OF_SENSORS * pc.REBASE_DURATION):
+        #         pass
 
         return {"Temp": return_temp, "Humidity": return_humidity, "CO2": return_co2, "TVOC": return_voc}
 
@@ -71,17 +71,19 @@ class SensorDataProcessor:
         #    action_dict[FILTER] = 3
         #elif avg_dict["voc"] >= :
         #    action_dict[FILTER] = 2
-        if avg_dict["TVOC"] >= pc.VOC_UPPER_BOUND:
+        if avg_dict["TVOC"] >= 1000:
             action_dict[pc.FILTER] = 1
-        elif avg_dict["TVOC"] < pc.VOC_LOWER_BOUND:
+        elif avg_dict["TVOC"] < 800:
             action_dict[pc.FILTER] = -1
 
     def avg_list(self, aqlist):
         return sum(aqlist) / len(aqlist)
 
     def worst_case_list(self, aqlist):
-        return max(aqlist)
-        
+        try:
+            return max(aqlist)
+        except:
+            return 0
 
 
 # time.sleep(1)
