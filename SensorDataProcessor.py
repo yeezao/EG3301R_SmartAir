@@ -80,8 +80,10 @@ class SensorDataProcessor:
         return sum(aqlist) / len(aqlist)
 
     def worst_case_list(self, aqlist):
-        return max(aqlist)
-        
+        try:
+            return max(aqlist)
+        except:
+            return 0
 
 
 # time.sleep(1)
