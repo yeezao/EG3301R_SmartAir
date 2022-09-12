@@ -54,10 +54,10 @@ class SensorDataProcessor:
             return_temp = self.worst_case_list(temp_list)
             return_humidity = self.worst_case_list(humidity_list)
 
-        if add_to_rebaseline:
-            pc.co2_values_rebaseline.append(return_co2)
-            if (len(pc.co2_values_rebaseline) >= pc.NUM_OF_SENSORS * pc.REBASE_DURATION):
-                pass
+        # if add_to_rebaseline:
+        #     pc.co2_values_rebaseline.append(return_co2)
+        #     if (len(pc.co2_values_rebaseline) >= pc.NUM_OF_SENSORS * pc.REBASE_DURATION):
+        #         pass
 
         return {"Temp": return_temp, "Humidity": return_humidity, "CO2": return_co2, "TVOC": return_voc}
 
