@@ -99,7 +99,7 @@ if __name__ == "__main__":
     ax = fig.add_subplot(1,1,1)    
     ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr,param], interval=10, repeat=False)
     plt.show()
-    ani.save(f, writer=animation.FFMpegWriter(fps=60) )
+    #ani.save(f, writer=animation.FFMpegWriter(fps=60) )
     plt.close()
 
 #test    

@@ -19,7 +19,7 @@ const char* wifi_pw = "Lyz1999/2";
 const char* mqtt_broker_ip = "192.168.31.149";
 const char* mqtt_pub_topic = "sensordata";
 const char* mqtt_sub_topic = "filter_action";
-const char* mqtt_clientid = "sensor";
+const char* mqtt_clientid = "sensor_1";
 const char* mqtt_port = 1883;
 
 unsigned long start = 0;
@@ -69,7 +69,7 @@ String encode_json(DFRobot_CCS811 CCS811, dht11 DHT11) {
   StaticJsonDocument<200> jsondoc;
   jsondoc["CO2"] = CCS811.getCO2PPM();
   jsondoc["TVOC"] = CCS811.getTVOCPPB();
-  jsondoc["id"] = "3";
+  jsondoc["id"] = "5";
   jsondoc["Humidity"] = DHT11.humidity;
   jsondoc["Temp"] = DHT11.temperature-2;
   String output;
@@ -153,6 +153,7 @@ void setup_wifi() {
 //  WiFi.disconnect();
 //  WiFi.begin(wifi_ssid, wifi_pw);
   while (WiFi.status() != WL_CONNECTED) {
+    Serial.println("connecting to wifi...");
     delay(1000);
     WiFi.disconnect();
     WiFi.begin(wifi_ssid, wifi_pw);
@@ -176,16 +177,21 @@ void setup_mqtt() {
 void setup(void)
 {
     Serial.begin(111111);
+    Serial.print("1");
     /*Wait for the chip to be initialized completely, and then exit*/
     irrecv.enableIRIn();
+    Serial.print("2");
     irrecv.blink13(true);
+    Serial.print("3");
     while(CCS811.begin() != 0){
         Serial.println("failed to init chip, please check if the chip connection is fine");
         delay(1000);
     }
-    
+    Serial.print("5");    
     setup_wifi();
+    Serial.print("6");    
     setup_mqtt();
+    Serial.print("7");    
     IrSender.begin(IR_TX_PIN);
 }
 
