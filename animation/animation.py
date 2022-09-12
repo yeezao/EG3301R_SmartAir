@@ -86,52 +86,53 @@ def animate(i,dataArr,actionsArr,param):
 PARAM_AXES_LIM = {"TVOC":3000, "CO2": 4000}
 
 #put ANY available sensor number
-REPSENSOR = 4
+ANYSENSOR = 5
+REPSENSOR = ANYSENSOR - 1
 
-# if __name__ == "__main__":
-#     print("Read from: ")
-#     readSheet=input()
-#     while True:
-#         try:
-#             x = readCSV(readSheet)
-#         except:
-#             print("File not found!")
-#             print("Read from: ")
-#             readSheet = input()
-#         else:
-#             break
-#     print("Read param: ")
-#     param = input()
-#     #print ("Save to: ")
-#     #f = r"./" + input() +".mp4"
-#     dataframe = readCSV(readSheet)
-#     dataArr = makeArr(dataframe, param)
-#     actionsArr = makeActionsArr(dataframe)
-#     fig = plt.figure()
-#     ax = fig.add_subplot(1,1,1)    
-#     ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr,param], interval=10, repeat=False)
-#     plt.show()
-#     #ani.save(f, writer=animation.FFMpegWriter(fps=60) )
-#     plt.close()
-
-    
 if __name__ == "__main__":
     print("Read from: ")
-    readSheet="aq_readings_1209_damnlong.csv"
+    readSheet=input()
+    while True:
+        try:
+            x = readCSV(readSheet)
+        except:
+            print("File not found!")
+            print("Read from: ")
+            readSheet = input()
+        else:
+            break
     print("Read param: ")
-    param = "TVOC"
-    # print ("Save to: ")
-    # f = r"./" + "test" +".mp4"
+    param = input()
+    #print ("Save to: ")
+    #f = r"./" + input() +".mp4"
     dataframe = readCSV(readSheet)
     dataArr = makeArr(dataframe, param)
     actionsArr = makeActionsArr(dataframe)
-    print(dataArr)
-    #print(actionsArr)
-    fig, ax= plt.subplots()    
-    ani = FuncAnimation(fig, animate, frames=len(dataArr[REPSENSOR][0]),fargs=[dataArr,actionsArr,param], interval=1, repeat=False)
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)    
+    ani = FuncAnimation(fig, animate, frames=len(dataArr[REPSENSOR][0]),fargs=[dataArr,actionsArr,param], interval=10, repeat=False)
     plt.show()
     #ani.save(f, writer=animation.FFMpegWriter(fps=60) )
     plt.close()
+
+    
+# if __name__ == "__main__":
+#     print("Read from: ")
+#     readSheet="aq_readings_1209_damnlong.csv"
+#     print("Read param: ")
+#     param = "TVOC"
+#     # print ("Save to: ")
+#     # f = r"./" + "test" +".mp4"
+#     dataframe = readCSV(readSheet)
+#     dataArr = makeArr(dataframe, param)
+#     actionsArr = makeActionsArr(dataframe)
+#     #print(dataArr)
+#     #print(actionsArr)
+#     fig, ax= plt.subplots()    
+#     ani = FuncAnimation(fig, animate, frames=len(dataArr[REPSENSOR][0]),fargs=[dataArr,actionsArr,param], interval=1, repeat=False)
+#     plt.show()
+#     #ani.save(f, writer=animation.FFMpegWriter(fps=60) )
+#     plt.close()
 
 
 
