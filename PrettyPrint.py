@@ -6,6 +6,7 @@ def print_sensor_data(sensor_dict):
     i = 1
     for indiv_sensor_dict in sensor_dict.values():
         print("Sensor No. ", i)
+        print("Sensor Id: ", indiv_sensor_dict["id"])
         print("Temperature: ", indiv_sensor_dict["Temp"])
         print("Humidity: ", indiv_sensor_dict["Humidity"])
         print("CO2: ", indiv_sensor_dict["CO2"])
