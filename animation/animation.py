@@ -54,7 +54,12 @@ def makeActionsArr(df):
 def animate(i,dataArr,actionsArr,param):
     ax.clear()
     for r in range (len(dataArr)):
-        ax.plot(dataArr[r][0][:i],dataArr[r][1][:i] , label="sensor {}".format(r))
+        ax.plot(dataArr[r][0][:i],dataArr[r][1][:i] , label="sensor {}".format(r+1))
+    ax.set_xlabel("Time (seconds)")
+    ax.set_title(param + " against  time")
+    ax.legend().remove()
+    legend=ax.legend()
+    
     flag1 = -1
     flag2 = -1
     for j in actionsArr[0]:
@@ -76,6 +81,7 @@ def animate(i,dataArr,actionsArr,param):
                 flag2 = flag2 *-1
     ax.set_xlim([0,max(dataArr[0][0])+30])
     ax.set_ylim([0,PARAM_AXES_LIM[param]])
+    
 
 PARAM_AXES_LIM = {"TVOC":3000, "CO2": 2000}
 
@@ -89,9 +95,9 @@ if __name__ == "__main__":
     dataframe = readCSV(readSheet)
     dataArr = makeArr(dataframe, param)
     actionsArr = makeActionsArr(dataframe)
-    fig, ax= plt.subplots()    
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)    
     ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr,param], interval=10, repeat=False)
-    #ax.legend(loc='best')
     plt.show()
     ani.save(f, writer=animation.FFMpegWriter(fps=60) )
     plt.close()
