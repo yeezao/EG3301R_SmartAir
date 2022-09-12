@@ -71,9 +71,9 @@ class SensorDataProcessor:
         #    action_dict[FILTER] = 3
         #elif avg_dict["voc"] >= :
         #    action_dict[FILTER] = 2
-        if avg_dict["TVOC"] >= pc.VOC_UPPER_BOUND:
+        if avg_dict["TVOC"] >= 1000:
             action_dict[pc.FILTER] = 1
-        elif avg_dict["TVOC"] < pc.VOC_LOWER_BOUND:
+        elif avg_dict["TVOC"] < 800:
             action_dict[pc.FILTER] = -1
 
     def avg_list(self, aqlist):

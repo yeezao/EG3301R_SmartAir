@@ -15,7 +15,7 @@ REBASE_DURATION = 10
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_PUB = "filter_action"
 NUM_OF_SENSORS = 2
-BROKER_IP = "192.168.229.101"
+BROKER_IP = "192.168.31.149"
 MQTT_PORT = 1883
 
 LOG_FILEPATH = 'log/smartair_main.log'
@@ -24,7 +24,7 @@ AQ_CSV_PATH = 'data/aq_readings.csv'
 CSV_HEADERS = ['date', 'time', 'id', 'Temp', 'Humidity', 'CO2', 'TVOC', 'fan_action', 'filter_action']
 
 VOC_UPPER_BOUND = 1000
-VOC_LOWER_BOUND = VOC_UPPER_BOUND * 0.8
+VOC_LOWER_BOUND = 800
 
 co2_upper_bound = 1300
 co2_lower_bound = 1050
