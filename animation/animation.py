@@ -88,10 +88,19 @@ PARAM_AXES_LIM = {"TVOC":3000, "CO2": 2000}
 if __name__ == "__main__":
     print("Read from: ")
     readSheet=input()
+    while True:
+        try:
+            x = readCSV(readSheet)
+        except:
+            print("File not found!")
+            print("Read from: ")
+            readSheet = input()
+        else:
+            break
     print("Read param: ")
     param = input()
-    print ("Save to: ")
-    f = r"./" + input() +".mp4"
+    #print ("Save to: ")
+    #f = r"./" + input() +".mp4"
     dataframe = readCSV(readSheet)
     dataArr = makeArr(dataframe, param)
     actionsArr = makeActionsArr(dataframe)
