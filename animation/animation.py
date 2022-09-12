@@ -42,6 +42,7 @@ def makeActionsArr(df):
             fanTimes.append([output[0][0][i]])
             flag = flag * -1
     filterTimes = []
+    flag=1
     for i in range(len(output[1][1])):
         if output[1][1][i]==flag:
             filterTimes.append([output[1][0][i]])
@@ -55,19 +56,33 @@ def makeActionsArr(df):
 
 
 #function that draws each frame of the animation takes in arrays to be plotted [[x1,y1],[x2,y2]] 
-def animate(i,dataArr,actionsArr):
+def animate(i,dataArr,actionsArr,param):
     ax.clear()
     for r in range (len(dataArr)):
         ax.plot(dataArr[r][0][:i],dataArr[r][1][:i] , label="sensor {}".format(r))
+    flag1 = -1
+    flag2 = -1
     for j in actionsArr[0]:
         if j[0]< dataArr[0][0][i]:
-            ax.axvline(x = j[0], color = 'b', label = 'axvline - full height')
+            if flag1==-1:
+                ax.axvline(x = j[0], color = 'b', linestyle = "solid")
+                flag1 = flag1 *-1
+            else:
+                ax.axvline(x = j[0], color = 'b', linestyle='dotted',)
+                flag1 = flag1 *-1
+
     for k in actionsArr[1]:
         if k[0]< dataArr[0][0][i]:
-            ax.axvline(x = k[0], color = 'r', label = 'axvline - full height')
+            if flag2==-1:
+                ax.axvline(x = k[0], color = 'r',linestyle = "dashdot")
+                flag2=flag2*-1
+            else:
+                ax.axvline(x = k[0], color = 'r', linestyle='dotted')
+                flag2 = flag2 *-1
     ax.set_xlim([0,max(dataArr[0][0])+30])
-    ax.set_ylim([0,max(dataArr[0][1])+30])
+    ax.set_ylim([0,PARAM_THRESHOLDS[param]])
 
+PARAM_THRESHOLDS = {"TVOC":3000, "CO2": 2000}
 
 if __name__ == "__main__":
     print("Read from: ")
@@ -80,8 +95,8 @@ if __name__ == "__main__":
     dataArr = makeArr(dataframe, param)
     actionsArr = makeActionsArr(dataframe)
     fig, ax= plt.subplots()    
-    ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr], interval=10, repeat=False)
-    ax.legend(loc='best')
+    ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr,param], interval=10, repeat=False)
+    #ax.legend(loc='best')
     plt.show()
     ani.save(f, writer=animation.FFMpegWriter(fps=60) )
     plt.close()
@@ -89,7 +104,7 @@ if __name__ == "__main__":
 #test    
 # if __name__ == "__main__":
 #     print("Read from: ")
-#     readSheet="aq_readingsSept8.csv"
+#     readSheet="aq_readings (3).csv"
 #     print("Read param: ")
 #     param = "TVOC"
 #     print ("Save to: ")
@@ -99,7 +114,7 @@ if __name__ == "__main__":
 #     actionsArr = makeActionsArr(dataframe)
 #     print(actionsArr)
 #     fig, ax= plt.subplots()    
-#     ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr], interval=10, repeat=False)
+#     ani = FuncAnimation(fig, animate, frames=len(dataArr[0][0]),fargs=[dataArr,actionsArr], interval=1, repeat=False)
 #     plt.show()
 #     ani.save(f, writer=animation.FFMpegWriter(fps=60) )
 #     plt.close()
