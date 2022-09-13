@@ -54,7 +54,8 @@ def makeActionsArr(df):
 def animate(i,dataArr,actionsArr,param):
     ax.clear()
     for r in range (len(dataArr)):
-        ax.plot(dataArr[r][0][:i],dataArr[r][1][:i] , label="sensor {}".format(r+1))
+        if dataArr[r][0]:
+            ax.plot(dataArr[r][0][:i],dataArr[r][1][:i] , label="sensor {}".format(r+1))
     ax.set_xlabel("Time (seconds)")
     ax.set_title(param + " against  time")
     ax.legend().remove()
@@ -83,10 +84,10 @@ def animate(i,dataArr,actionsArr,param):
     ax.set_ylim([0,PARAM_AXES_LIM[param]])
     
 
-PARAM_AXES_LIM = {"TVOC":3000, "CO2": 4000}
+PARAM_AXES_LIM = {"TVOC":2000, "CO2": 4000}
 
 #put ANY available sensor number
-ANYSENSOR = 5
+ANYSENSOR = 3
 REPSENSOR = ANYSENSOR - 1
 
 if __name__ == "__main__":
@@ -118,18 +119,27 @@ if __name__ == "__main__":
     
 # if __name__ == "__main__":
 #     print("Read from: ")
-#     readSheet="aq_readings_1209_damnlong.csv"
+#     readSheet=input()
+#     while True:
+#         try:
+#             x = readCSV(readSheet)
+#         except:
+#             print("File not found!")
+#             print("Read from: ")
+#             readSheet = input()
+#         else:
+#             break
 #     print("Read param: ")
-#     param = "TVOC"
-#     # print ("Save to: ")
-#     # f = r"./" + "test" +".mp4"
+#     param = input()
+#     #print ("Save to: ")
+#     #f = r"./" + input() +".mp4"
 #     dataframe = readCSV(readSheet)
 #     dataArr = makeArr(dataframe, param)
+#     print(len(dataArr[REPSENSOR][0]))
 #     actionsArr = makeActionsArr(dataframe)
-#     #print(dataArr)
-#     #print(actionsArr)
-#     fig, ax= plt.subplots()    
-#     ani = FuncAnimation(fig, animate, frames=len(dataArr[REPSENSOR][0]),fargs=[dataArr,actionsArr,param], interval=1, repeat=False)
+#     fig = plt.figure()
+#     ax = fig.add_subplot(1,1,1)    
+#     ani = FuncAnimation(fig, animate, frames=len(dataArr[REPSENSOR][0]),fargs=[dataArr,actionsArr,param], interval=10, repeat=False)
 #     plt.show()
 #     #ani.save(f, writer=animation.FFMpegWriter(fps=60) )
 #     plt.close()
