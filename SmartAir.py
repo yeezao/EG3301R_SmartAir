@@ -44,7 +44,11 @@ def subscribe_to_topic(client):
 def connect_to_broker(client):
     client.on_connect = on_connect
     # logging.info("Connecting to broker at IP address ", pc.BROKER_IP, " on port ", pc.MQTT_PORT)
-    client.connect(pc.BROKER_IP, pc.MQTT_PORT)
+    try:
+        client.connect(pc.BROKER_IP, pc.MQTT_PORT)
+    except:
+        print("Fatal Error - could not connect to MQTT Broker at ", pc.BROKER_IP, " on ", pc.MQTT_PORT)
+        # logging.critical("Fatal Error - could not connect to MQTT Broker at ", pc.BROKER_IP, " on ", pc.MQTT_PORT)
     client.loop_start()
     time.sleep(5)
     while not client.is_connected:
