@@ -7,9 +7,12 @@ import time
 from CsvReaderWriter import CsvReaderWriter
 from SensorDataProcessor import SensorDataProcessor
 import PrettyPrint
-import RPi.GPIO as GPIO
+import platform
 import program_constants as pc
 import program_global_variables as pgv
+
+if "Linux" in platform.system():
+    import RPi.GPIO as GPIO
 
 sensor_dict = {}
 action_dict = {}
@@ -34,6 +37,7 @@ def json_deserialise(object):
 # subscribe broker to sensors topic
 def subscribe_to_topic(client):
     client.subscribe(pc.MQTT_TOPIC_SUB)
+    client.subscribe(pc.MQTT_TOPIC_SUB_CO2_AMB)
     # logging.info("Subscribed and callback linked to topic ", pc.MQTT_TOPIC_SUB)
 
 # Connect clients to broker
@@ -51,8 +55,8 @@ def connect_to_broker(client):
 
 def setup_logger():
     os.makedirs(os.path.dirname(pc.LOG_FILEPATH), exist_ok=True)
-    # logging.basicConfig(level=logging.DEBUG, filename=pc.LOG_FILEPATH, format="%(asctime)s - %(name)s - %(levelname)8s - %(message)s - %(funcName)s, line %(lineno)d")
-    # logging.info("Beginning Logging...")
+    logging.basicConfig(level=logging.DEBUG, filename=pc.LOG_FILEPATH, format="%(asctime)s - %(name)s - %(levelname)8s - %(message)s - %(funcName)s, line %(lineno)d")
+    logging.info("Beginning Logging...")
 
 # Initialise clients and begin connection
 def setup():
@@ -60,11 +64,15 @@ def setup():
     PrettyPrint.setup_message()
     setup_logger()
 
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(pc.RELAY_1_PIN, GPIO.OUT)
-    GPIO.setup(pc.RELAY_2_PIN, GPIO.OUT)
-    # logging.info("GPIO Pins setup complete")
+    if "Linux" in platform.system():
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(pc.RELAY_1_PIN, GPIO.OUT)
+        GPIO.setup(pc.RELAY_2_PIN, GPIO.OUT)
+        # logging.info("GPIO Pins setup complete")
+    else:
+        # logging.warn("GPIO Pins setup skipped - RPi.GPIO requires Linux but program is being run on ", platform.system())
+        pass
 
     global client1
     client1 = mqtt.Client(client_id="pi_data_processor")
@@ -92,7 +100,11 @@ def send_actions(action_dict):
         client1.publish(pc.MQTT_TOPIC_PUB, json_deserialise({pc.FILTER: action_dict[pc.FILTER]}))
     if (action_dict[pc.RELAY_1] != 0 or action_dict[pc.RELAY_2] != 0):
         PrettyPrint.print_action_data_fan(action_dict)
-        process_relay_action(action_dict)
+        if "Linux" in platform.system():
+            process_relay_action(action_dict)
+        else:
+            # logging.warn("No actions sent to GPIO - RPi.GPIO requires Linux but program is being run on ", platform.system()")
+            pass
 
 # Sends actions to GPIO
 def process_relay_action(action_dict):
