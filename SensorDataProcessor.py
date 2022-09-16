@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 from CsvReaderWriter import CsvReaderWriter
 import program_constants as pc
+import program_global_variables as pgv
 
 class SensorDataProcessor:
 
@@ -12,6 +13,7 @@ class SensorDataProcessor:
         action_dict = {pc.FILTER: 0, pc.RELAY_1: 0, pc.RELAY_2: 0}
         print(sensor_dict_multipleperiods)
 
+        self.rebase_co2_thresholds()
         avg_dict = {}
 
         for record_time, sensor_dict_singletime in sensor_dict_multipleperiods.items():
@@ -43,28 +45,23 @@ class SensorDataProcessor:
             temp_list.append(item["Temp"])
             humidity_list.append(item["Humidity"])
         
-        if pc.OPR_MODE == 1:
+        if pgv.prog_mode == pgv.ProgMode.AVG_CASE:
             return_co2 = self.avg_list(c02_list)
             return_voc = self.avg_list(voc_list)
             return_temp = self.avg_list(temp_list)
             return_humidity = self.avg_list(humidity_list)
-        elif pc.OPR_MODE == 2:
+        elif pgv.prog_mode == pgv.ProgMode.WORST_CASE:
             return_co2 = self.worst_case_list(c02_list)
             return_voc = self.worst_case_list(voc_list)
             return_temp = self.worst_case_list(temp_list)
             return_humidity = self.worst_case_list(humidity_list)
 
-        # if add_to_rebaseline:
-        #     pc.co2_values_rebaseline.append(return_co2)
-        #     if (len(pc.co2_values_rebaseline) >= pc.NUM_OF_SENSORS * pc.REBASE_DURATION):
-        #         pass
-
         return {"Temp": return_temp, "Humidity": return_humidity, "CO2": return_co2, "TVOC": return_voc}
 
     def determine_action(self, action_dict, avg_dict):
-        if avg_dict["CO2"] >= pc.co2_upper_bound or avg_dict["TVOC"] > 2000:
+        if avg_dict["CO2"] >= pgv.co2_upper_bound or avg_dict["TVOC"] > 2000:
             action_dict[pc.RELAY_1] = 1
-        elif avg_dict["CO2"] <= pc.co2_lower_bound and avg_dict["TVOC"] < 1500:
+        elif avg_dict["CO2"] <= pgv.co2_lower_bound and avg_dict["TVOC"] < 1500:
             action_dict[pc.RELAY_1] = -1
 
         #if avg_dict["voc"] >= 3:
@@ -75,6 +72,13 @@ class SensorDataProcessor:
             action_dict[pc.FILTER] = 1
         elif avg_dict["TVOC"] < 800:
             action_dict[pc.FILTER] = -1
+
+    def rebasse_co2_thresholds(self):
+        if (len(pgv.co2_values_rebaseline) == 0):
+            return
+        else:
+            pgv.co2_upper_bound = self.avg_list(pgv.co2_values_rebaseline) + 700
+            pgv.co2_lower_bound = pgv.co2_upper_bound * 0.8
 
     def avg_list(self, aqlist):
         return sum(aqlist) / len(aqlist)

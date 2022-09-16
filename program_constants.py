@@ -1,4 +1,4 @@
-#Mode 1 is averaging, Mode 2 is worst-case
+# DEPRECATED: Mode 1 is averaging, Mode 2 is worst-case
 OPR_MODE = 2
 
 FILTER = "filter"
@@ -13,6 +13,7 @@ TIMEBLOCK_PERIOD = 15 # 15sec block period between actions
 REBASE_DURATION = 10
 
 MQTT_TOPIC_SUB = "sensordata"
+MQTT_TOPIC_SUB_CO2_AMB = "co2_ambient"
 MQTT_TOPIC_PUB = "filter_action"
 NUM_OF_SENSORS = 2
 BROKER_IP = "192.168.31.149"
@@ -25,8 +26,3 @@ CSV_HEADERS = ['date', 'time', 'id', 'Temp', 'Humidity', 'CO2', 'TVOC', 'fan_act
 
 VOC_UPPER_BOUND = 1000
 VOC_LOWER_BOUND = 800
-
-co2_upper_bound = 1300
-co2_lower_bound = 1050
-
-co2_values_rebaseline = []

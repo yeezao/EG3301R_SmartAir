@@ -9,6 +9,7 @@ from SensorDataProcessor import SensorDataProcessor
 import PrettyPrint
 import RPi.GPIO as GPIO
 import program_constants as pc
+import program_global_variables as pgv
 
 sensor_dict = {}
 action_dict = {}
@@ -16,10 +17,13 @@ sensor_dict_multipleperiods = {}
 
 # decode json string into objects and add to sensor_dictionary
 def json_serialize_add(client, message):
-    dic = json.loads(message)
+    dic = json_serialize(message)
     sensor_dict[dic["id"]] = dic
     # logging.debug("JSON message serialised into ", sensor_dict[dic["id"]], " for client ", str(client))
     print(sensor_dict)
+
+def json_serialize(message):
+    return json.loads(message)
 
 # encode action data to json string
 def json_deserialise(object):
@@ -151,7 +155,12 @@ def main():
 def on_sensor_message(client, userdata, message):
     # logging.debug("raw binary data received: ", str(message))
     # logging.info("JSON Message received from Sensor ", str(message.payload.decode("utf-8")))
-    json_serialize_add(client, str(message.payload.decode("utf-8")))
+    add_co2_amb = True if message.topic == pc.MQTT_TOPIC_SUB_CO2_AMB else False       
+    if (add_co2_amb): # for outdoor ambient CO2 sensor
+        dic = json_serialize(str(message.payload.decode("utf-8")))
+        pgv.co2_values_rebaseline.append(dic["CO2"])
+    else: # for indoor data sensors
+        json_serialize_add(client, str(message.payload.decode("utf-8")))        
 
 # Callback to print error if connection fails
 def on_connect(client, userdata, flags, ret):
