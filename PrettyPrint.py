@@ -11,6 +11,9 @@ def print_sensor_data(sensor_dict):
         print("Humidity: ", indiv_sensor_dict["Humidity"])
         print("CO2: ", indiv_sensor_dict["CO2"])
         print("VOC: ", indiv_sensor_dict["TVOC"])
+        print("PM1: ", indiv_sensor_dict["PM1"])
+        print("PM2.5: ", indiv_sensor_dict["PM2.5"])
+        print("PM10: ", indiv_sensor_dict["PM10"])
         print("\n")
         i += 1 
 
