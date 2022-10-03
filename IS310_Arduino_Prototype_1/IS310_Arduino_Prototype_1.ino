@@ -1,17 +1,19 @@
+#include <Seeed_HM330X.h>
+#include "Air_Quality_Sensor.h"
+
+#include <Adafruit_SCD30.h>
+
 #include <IRremote.h>
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-#include "DFRobot_CCS811.h"
+
+
 #include <IRremote.h>
-#include <dht11.h>
-#include <DFRobot_DHT11.h>
 #include <Arduino.h>
-dht11 DHT;
-//dht11 DHT;
-DFRobot_CCS811 CCS811;
+
 
 const char* wifi_ssid = "Xiaomi_ED47";
 const char* wifi_pw = "Lyz1999/2";
@@ -29,9 +31,10 @@ WiFiClient wificlient;
 PubSubClient client(mqtt_broker_ip, 1883, wificlient);
 
 #define DECODE_NEC
-#define DHT11_PIN 12
+//#define 
 #define RECV_PIN 3
 #define IR_TX_PIN 13
+#define GROVE_PIN A0
 
 #define SENSOR_DELAY 10000
 
@@ -50,10 +53,26 @@ int filter_state = FILTER_OFF;
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
+Adafruit_SCD30 scd30;
+AirQualitySensor grove_aq(A0);
+HM330X grove_pm;
 
-void transmit_data(DFRobot_CCS811 CCS811, dht11 DHT) {
+uint8_t buf[30];
+const char* str[] = {"PM1.0 concentration(Atmospheric environment,unit:ug/m3): ",
+                     "PM2.5 concentration(Atmospheric environment,unit:ug/m3): ",
+                     "PM10 concentration(Atmospheric environment,unit:ug/m3): ",
+                    };
 
-  String json = encode_json(CCS811, DHT);
+struct pmData {
+  int pm1;
+  int pm25;
+  int pm10;
+} pmDataInstance;
+uint8_t pmDataArray[3];
+
+void transmit_data() {
+
+  String json = encode_json();
   int ret = client.publish(mqtt_pub_topic, json.c_str());
   Serial.println(ret);
   if (!ret) {
@@ -65,16 +84,19 @@ void transmit_data(DFRobot_CCS811 CCS811, dht11 DHT) {
   }
 }
 
-String encode_json(DFRobot_CCS811 CCS811, dht11 DHT11) {
+String encode_json() {
   StaticJsonDocument<200> jsondoc;
-  jsondoc["CO2"] = CCS811.getCO2PPM();
-  jsondoc["TVOC"] = CCS811.getTVOCPPB();
   jsondoc["id"] = "5";
-  jsondoc["Humidity"] = DHT11.humidity;
-  jsondoc["Temp"] = DHT11.temperature-2;
+  jsondoc["CO2"] = scd30.CO2;
+  jsondoc["TVOC"] = grove_aq.getValue();
+  jsondoc["Humidity"] = scd30.relative_humidity;
+  jsondoc["Temp"] = scd30.temperature;
+  jsonDoc["PM1"] = pmDataInstance.pm1;
+  jsondoc["PM2.5"] = pmDataInstance.pm25;
+  jsondoc["PM10"] = pmDataInstance.pm10;
   String output;
   serializeJson(jsondoc, output);
-  Serial.print(output);
+  //Serial.print(output);
   return output;
 }
 
@@ -86,49 +108,90 @@ int decode_json(byte* payload) {
   return jsondoc["filter"].as<int>();  
 }
 
-void read_aq_data() {
-  int chk;
-  Serial.print("DHT11: ");
-  
-  chk = DHT.read(DHT11_PIN);    // READ DATA
-  switch (chk){
-    case DHTLIB_OK:
-                Serial.print("OK,\t");
-                break;
-    case DHTLIB_ERROR_CHECKSUM:
-                Serial.print("Checksum error,\t");
-                break;
-    case DHTLIB_ERROR_TIMEOUT:
-                Serial.print("Time out error,\t");
-                break;
-    default:
-                Serial.print("Unknown error,\t");
-                break;
-  }
-  
-  // DISPLAY DATA
-  
-  Serial.print("Humidity: ");
-  Serial.print(DHT.humidity,1);
-  Serial.print(",\t");
-  Serial.print("Temperature: ");
-  Serial.println(DHT.temperature-2,1); // Zero temperature data
-  
-  
-  if(CCS811.checkDataReady() == true){
-      Serial.print("CO2: ");
-      Serial.print(CCS811.getCO2PPM());
-      Serial.print("ppm, TVOC: ");
-      Serial.print(CCS811.getTVOCPPB());
-      Serial.println("ppb");
-      transmit_data(CCS811, DHT);
+/*parse buf with 29 uint8_t-data*/
+HM330XErrorCode parse_result(uint8_t* data) {
+    uint16_t value = 0;
+    if (NULL == data) {
+        return ERROR_PARAM;
+    }
+    //using i = 5 to start to skip sensor num and std partic matter
+    for (int i = 5; i < 8; i++) { 
+        value = (uint16_t) data[i * 2] << 8 | data[i * 2 + 1];
+        pmDataArray[i - 5] = value;
+        print_result(str[i - 5], value);
+    }
+    pmDataInstance->pm1 = pmDataArray[0];
+    pmDataInstance->pm25 = pmDataArray[1];
+    pmDataInstance->pm10 = pmDataArray[2];
 
-} else {
-        Serial.println("Data is not ready!");
-   }
-    CCS811.writeBaseLine(0x447B);
-    //delay cannot be less than measurement cycle
-    delay(2000);
+    return NO_ERROR;
+}
+
+/*
+HM330XErrorCode parse_result_value(uint8_t* data) {
+    if (NULL == data) {
+        return ERROR_PARAM;
+    }
+    for (int i = 0; i < 28; i++) {
+        Serial.print(data[i], HEX);
+        Serial.print("  ");
+        if ((0 == (i) % 5) || (0 == i)) {
+            Serial.println("");
+        }
+    }
+    uint8_t sum = 0;
+    for (int i = 0; i < 28; i++) {
+        sum += data[i];
+    }
+    if (sum != data[28]) {
+        Serial.println("wrong checkSum!!");
+    }
+    Serial.println("");
+    return NO_ERROR;
+}
+*/
+
+HM330XErrorCode print_result(const char* str, uint16_t value) {
+    if (NULL == str) {
+        return ERROR_PARAM;
+    }
+    Serial.print(str);
+    Serial.println(value);
+    return NO_ERROR;
+}
+
+void read_aq_data() {
+
+    if (scd30.dataReady()) {
+    
+      if (!scd30.read()){ 
+        Serial.println("Error reading sensor data"); 
+        return; 
+      }
+  
+      Serial.print("Temperature: ");
+      Serial.print(scd30.temperature);
+      Serial.println(" degrees C");
+      
+      Serial.print("Relative Humidity: ");
+      Serial.print(scd30.relative_humidity);
+      Serial.println(" %");
+      
+      Serial.print("CO2: ");
+      Serial.print(scd30.CO2, 3);
+      Serial.println(" ppm");
+      Serial.println("");
+    }
+
+    int voc_value = grove_aq.getValue();
+    Serial.print("VOC is: ");
+    Serial.println(voc_value);
+
+    grove_pm.read_sensor_value(buf, 29);
+    //parse_result_value(buf);
+    parse_result(buf);
+    transmit_data();
+    
 }
 
 void on_mqtt_message(char* topic, byte* payload, unsigned int length) {
@@ -177,32 +240,43 @@ void setup_mqtt() {
 void setup(void)
 {
     Serial.begin(111111);
-    Serial.print("1");
     /*Wait for the chip to be initialized completely, and then exit*/
     irrecv.enableIRIn();
-    Serial.print("2");
     irrecv.blink13(true);
-    Serial.print("3");
-    while(CCS811.begin() != 0){
-        Serial.println("failed to init chip, please check if the chip connection is fine");
-        delay(1000);
+
+    if (!scd30.begin()) {
+      Serial.println("Failed to find SCD30 chip");
+      while (1) { delay(10); }
     }
-    Serial.print("5");    
+    Serial.println("SCD30 Found!");
+    Serial.print("Measurement Interval: "); 
+    Serial.print(scd30.getMeasurementInterval()); 
+    Serial.println(" seconds");
+    scd30.forceRecalibrationWithReference(630);
+
+    delay(100);
+
+    if (grove_aq.init()) ? Serial.println("yay") : Serial.println("cry");
+    if (grove_pm.init()) ? Serial.println("yay") : Serial.println("cry");
+
     setup_wifi();
-    Serial.print("6");    
     setup_mqtt();
-    Serial.print("7");    
     IrSender.begin(IR_TX_PIN);
+
+    delay(1000);
+    
 }
 
 void loop() {
 
   client.loop();
   
-   if (IrReceiver.decode()) {
+  /*
+  if (IrReceiver.decode()) {
         Serial.println(IrReceiver.decodedIRData.decodedRawData, HEX);
         IrReceiver.resume(); // Enable receiving of the next value
   }
+  */
 
   if (millis() - start >= 2000) {
     Serial.print("starting sensor reads");
@@ -210,10 +284,4 @@ void loop() {
     start = millis();
   }
 
-  if (millis() - start_reset >= 120000) {
-    Serial.print("restting baseline");
-    CCS811.writeBaseLine(CCS811.readBaseLine());
-    start_reset = millis();
-  }
-  
 }
