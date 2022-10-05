@@ -21,7 +21,7 @@ const char* wifi_pw = "Lyz1999/2";
 const char* mqtt_broker_ip = "192.168.31.149";
 const char* mqtt_pub_topic = "sensordata";
 const char* mqtt_sub_topic = "filter_action";
-// const char* mqtt_clientid = "sensor_1";
+ const char* mqtt_clientid = "sensor_1";
 const char* mqtt_port = 1883;
 
 unsigned long start = 0;
@@ -91,7 +91,7 @@ String encode_json() {
   jsondoc["TVOC"] = grove_aq.getValue();
   jsondoc["Humidity"] = scd30.relative_humidity;
   jsondoc["Temp"] = scd30.temperature;
-  jsonDoc["PM1"] = pmDataInstance.pm1;
+  jsondoc["PM1"] = pmDataInstance.pm1;
   jsondoc["PM2.5"] = pmDataInstance.pm25;
   jsondoc["PM10"] = pmDataInstance.pm10;
   String output;
@@ -120,9 +120,9 @@ HM330XErrorCode parse_result(uint8_t* data) {
         pmDataArray[i - 5] = value;
         print_result(str[i - 5], value);
     }
-    pmDataInstance->pm1 = pmDataArray[0];
-    pmDataInstance->pm25 = pmDataArray[1];
-    pmDataInstance->pm10 = pmDataArray[2];
+    pmDataInstance.pm1 = pmDataArray[0];
+    pmDataInstance.pm25 = pmDataArray[1];
+    pmDataInstance.pm10 = pmDataArray[2];
 
     return NO_ERROR;
 }
@@ -225,7 +225,7 @@ void setup_wifi() {
 }
 
 void setup_mqtt() {
-  bool ret = client.connect();
+  bool ret = client.connect(mqtt_clientid);
   delay(1000);
   if (!ret) {
     Serial.print("Could not connect to MQTT broker.");
@@ -256,8 +256,17 @@ void setup(void)
 
     delay(100);
 
-    if (grove_aq.init()) ? Serial.println("yay") : Serial.println("cry");
-    if (grove_pm.init()) ? Serial.println("yay") : Serial.println("cry");
+
+    if (grove_aq.init()) {
+      Serial.println("yay");
+    } else {
+      Serial.println("cry");
+    }
+    if (grove_pm.init()) {
+      Serial.println("yay");
+    } else {
+      Serial.println("cry");
+    }
 
     setup_wifi();
     setup_mqtt();
