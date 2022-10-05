@@ -103,18 +103,20 @@ def process_sensor_data():
 def send_actions(action_dict):
     #print(action_dict)
     if (action_dict[pc.FILTER] != 0):
-        logging.info("sending action %s to Arduino(s)", action_dict[pc.FILTER])
+        logging.info("sending filter action %s to Arduino(s)", action_dict[pc.FILTER])
         PrettyPrint.print_action_data_filter(action_dict)
-        client1.publish(pc.MQTT_TOPIC_PUB, json_deserialise({pc.FILTER: action_dict[pc.FILTER]}))
+        client1.publish(pc.MQTT_TOPIC_PUB_FILTER, json_deserialise({pc.FILTER: action_dict[pc.FILTER]}))
     if (action_dict[pc.RELAY_1] != 0 or action_dict[pc.RELAY_2] != 0):
         PrettyPrint.print_action_data_fan(action_dict)
-        if "Linux" in platform.system():
-            process_relay_action(action_dict)
-        else:
-            logging.warning("No actions sent to GPIO - RPi.GPIO requires Linux but program is being run on %s ", platform.system())
-            pass
+        logging.info("sending fan action %s to Arduino(s)", action_dict[pc.RELAY_1])
+        client1.publish(pc.MQTT_TOPIC_PUB_FAN, json_deserialise({pc.RELAY_1: action_dict[pc.RELAY_1]}))
+        # if "Linux" in platform.system():
+        #     process_relay_action(action_dict)
+        # else:
+        #     logging.warning("No actions sent to GPIO - RPi.GPIO requires Linux but program is being run on %s ", platform.system())
+        #     pass
 
-# Sends actions to GPIO
+# DEPRECATED Sends actions to GPIO
 def process_relay_action(action_dict):
     logging.info("sending actions %i %i to GPIO Pins", action_dict[pc.RELAY_1], action_dict[pc.RELAY_2])
     if action_dict[pc.RELAY_1] == 1:
