@@ -16,4 +16,5 @@ while True:
     client1.publish(pc.MQTT_TOPIC_SUB, json.dumps({"id": 1, "Temp": 25, "Humidity": 80, "CO2":600,"TVOC":10}))
     time.sleep(0.1)
     client2.publish(pc.MQTT_TOPIC_SUB, json.dumps({"id": 2, "Temp": 27, "Humidity": 60, "CO2":1000,"TVOC":11}))
+    print("complete 1 round")
     time.sleep(2)
