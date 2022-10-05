@@ -1,19 +1,13 @@
 #include <Seeed_HM330X.h>
 #include "Air_Quality_Sensor.h"
-
 #include <Adafruit_SCD30.h>
-
 #include <IRremote.h>
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
-
-
-
 #include <IRremote.h>
 #include <Arduino.h>
-
 
 const char* wifi_ssid = "Xiaomi_ED47";
 const char* wifi_pw = "Lyz1999/2";
@@ -21,7 +15,7 @@ const char* wifi_pw = "Lyz1999/2";
 const char* mqtt_broker_ip = "192.168.31.149";
 const char* mqtt_pub_topic = "sensordata";
 const char* mqtt_sub_topic = "filter_action";
- const char* mqtt_clientid = "sensor_1";
+const char* mqtt_clientid = "sensor_3";
 const char* mqtt_port = 1883;
 
 unsigned long start = 0;
@@ -58,10 +52,14 @@ AirQualitySensor grove_aq(A0);
 HM330X grove_pm;
 
 uint8_t buf[30];
-const char* str[] = {"PM1.0 concentration(Atmospheric environment,unit:ug/m3): ",
+const char* str[] = {"sensor num: ", "PM1.0 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
+                     "PM2.5 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
+                     "PM10 concentration(CF=1,Standard particulate matter,unit:ug/m3): ",
+                     "PM1.0 concentration(Atmospheric environment,unit:ug/m3): ",
                      "PM2.5 concentration(Atmospheric environment,unit:ug/m3): ",
                      "PM10 concentration(Atmospheric environment,unit:ug/m3): ",
                     };
+
 
 struct pmData {
   int pm1;
@@ -74,12 +72,13 @@ void transmit_data() {
 
   String json = encode_json();
   int ret = client.publish(mqtt_pub_topic, json.c_str());
+  delay(500);
   Serial.println(ret);
-  if (!ret) {
+  while (!ret) {
     Serial.print("Sending failed.");
     setup_wifi();
     setup_mqtt();
-    int ret = client.publish(mqtt_pub_topic, json.c_str());
+    ret = client.publish(mqtt_pub_topic, json.c_str());
     Serial.println(ret);
   }
 }
@@ -91,9 +90,9 @@ String encode_json() {
   jsondoc["TVOC"] = grove_aq.getValue();
   jsondoc["Humidity"] = scd30.relative_humidity;
   jsondoc["Temp"] = scd30.temperature;
-  jsondoc["PM1"] = pmDataInstance.pm1;
-  jsondoc["PM2.5"] = pmDataInstance.pm25;
-  jsondoc["PM10"] = pmDataInstance.pm10;
+  jsondoc["PM1"] = pmDataArray[0];
+  jsondoc["PM2.5"] = pmDataArray[1];
+  jsondoc["PM10"] = pmDataArray[2];
   String output;
   serializeJson(jsondoc, output);
   //Serial.print(output);
@@ -114,20 +113,16 @@ HM330XErrorCode parse_result(uint8_t* data) {
     if (NULL == data) {
         return ERROR_PARAM;
     }
-    //using i = 5 to start to skip sensor num and std partic matter
-    for (int i = 5; i < 8; i++) { 
+    for (int i = 5; i < 8; i++) {
         value = (uint16_t) data[i * 2] << 8 | data[i * 2 + 1];
         pmDataArray[i - 5] = value;
         print_result(str[i - 5], value);
+
     }
-    pmDataInstance.pm1 = pmDataArray[0];
-    pmDataInstance.pm25 = pmDataArray[1];
-    pmDataInstance.pm10 = pmDataArray[2];
 
     return NO_ERROR;
 }
 
-/*
 HM330XErrorCode parse_result_value(uint8_t* data) {
     if (NULL == data) {
         return ERROR_PARAM;
@@ -149,7 +144,6 @@ HM330XErrorCode parse_result_value(uint8_t* data) {
     Serial.println("");
     return NO_ERROR;
 }
-*/
 
 HM330XErrorCode print_result(const char* str, uint16_t value) {
     if (NULL == str) {
@@ -187,8 +181,10 @@ void read_aq_data() {
     Serial.print("VOC is: ");
     Serial.println(voc_value);
 
-    grove_pm.read_sensor_value(buf, 29);
-    //parse_result_value(buf);
+    if (grove_pm.read_sensor_value(buf, 29)) {
+        Serial.println("HM330X read result failed!!");
+    }
+    parse_result_value(buf);
     parse_result(buf);
     transmit_data();
     
@@ -237,9 +233,26 @@ void setup_mqtt() {
   Serial.println("mqtt connected and subscribed");
 }
 
+
 void setup(void)
 {
     Serial.begin(111111);
+
+    delay(500);
+    
+    while (grove_pm.init()) {
+      Serial.println("Re-init grove_pm");
+      delay(1000);
+    }
+    Serial.println("grove_pm init successful");
+    delay(1000);
+    while (!grove_aq.init()) {
+      Serial.println("Re-init grove_aq");
+      delay(1000);
+    }
+    Serial.println("grove_aq init successful");
+    delay(1000);
+
     /*Wait for the chip to be initialized completely, and then exit*/
     irrecv.enableIRIn();
     irrecv.blink13(true);
@@ -252,21 +265,9 @@ void setup(void)
     Serial.print("Measurement Interval: "); 
     Serial.print(scd30.getMeasurementInterval()); 
     Serial.println(" seconds");
-    scd30.forceRecalibrationWithReference(630);
+    //scd30.forceRecalibrationWithReference(630);
 
     delay(100);
-
-
-    if (grove_aq.init()) {
-      Serial.println("yay");
-    } else {
-      Serial.println("cry");
-    }
-    if (grove_pm.init()) {
-      Serial.println("yay");
-    } else {
-      Serial.println("cry");
-    }
 
     setup_wifi();
     setup_mqtt();
