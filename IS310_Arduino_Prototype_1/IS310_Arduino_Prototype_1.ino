@@ -21,7 +21,7 @@ const char* wifi_pw = "Lyz1999/2";
 const char* mqtt_broker_ip = "192.168.31.149";
 const char* mqtt_pub_topic = "sensordata";
 const char* mqtt_sub_topic = "filter_action";
-const char* mqtt_clientid = "sensor_1";
+// const char* mqtt_clientid = "sensor_1";
 const char* mqtt_port = 1883;
 
 unsigned long start = 0;
@@ -213,8 +213,8 @@ void send_ir(int action) {
 }
 
 void setup_wifi() {
-//  WiFi.disconnect();
-//  WiFi.begin(wifi_ssid, wifi_pw);
+ WiFi.disconnect();
+ WiFi.begin(wifi_ssid, wifi_pw);
   while (WiFi.status() != WL_CONNECTED) {
     Serial.println("connecting to wifi...");
     delay(1000);
@@ -225,7 +225,7 @@ void setup_wifi() {
 }
 
 void setup_mqtt() {
-  bool ret = client.connect(mqtt_clientid);
+  bool ret = client.connect();
   delay(1000);
   if (!ret) {
     Serial.print("Could not connect to MQTT broker.");
