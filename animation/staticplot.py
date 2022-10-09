@@ -11,7 +11,7 @@ import math
 #reads csv to dataframe with timestamp formatted
 def readCSV (csvname):
     df=pd.read_csv(csvname)
-    df["timestamp"] = pd.to_datetime(df["date"] + " " + df["time"])
+    df["timestamp"] = pd.to_datetime(df["date"] + " " + df["time"],dayfirst=True)
     return df
 
 #creates dictionary of sensor dataframes based on id, and actions tuple of timestamps of action sign changes 
@@ -60,18 +60,19 @@ def makePlot(sensorDict,actionArr, ax,param):
 
     
 PARAMS = ["timestamp", "TVOC","CO2"]
-PARAM_AXES_LIM = {"TVOC":2000, "CO2": 4000}
+PARAM_AXES_LIM = {"TVOC":2000, "CO2": 4000, "PM1":20,"PM2.5":300,"PM10":20,"Temp":35,"Humidity":100}
 
 if __name__ == "__main__":
-    readSheet="aq_readings (3).csv"
-    param = "TVOC"
+    readSheet="aq_readings_0810_05.csv"
+    param = "CO2"
     dataframe = readCSV(readSheet)
     fig,ax=plt.subplots()
     sensorDict, actionArr = createPlotData(dataframe)
     #print (actionArr[0][0][0].month)
 
     #print(sensorDict)
-    makePlot(sensorDict,actionArr, ax,"TVOC")
-    ax.format_xdata = mdates.DateFormatter('%H:%M:%S')
+    makePlot(sensorDict,actionArr, ax,param)
+    print(dataframe)
+    #ax.format_xdata = mdates.DateFormatter('%H:%M:%S')
     plt.show()
     plt.close()
