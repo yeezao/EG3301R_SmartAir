@@ -67,15 +67,15 @@ def timeToClear(inputTuple):
         if inputTuple[0][1][j]==-1.0:
             endIndex = j
             break
-    print("First on " + inputTuple[0][0][endIndex])
-    print("Last off " + inputTuple[0][0][startIndex])
+    print("First on " + str(inputTuple[0][0][startIndex]))
+    print("Last off " + str(inputTuple[0][0][endIndex]))
     return inputTuple[0][0][endIndex]-inputTuple[0][0][startIndex]
 
 PARAMS = ["timestamp", "TVOC","CO2"]
 PARAM_AXES_LIM = {"TVOC":2000, "CO2": 4000, "PM1":20,"PM2.5":300,"PM10":20,"Temp":35,"Humidity":100}
 
 if __name__ == "__main__":
-    readSheet="aq_readings_02_test2.csv"
+    readSheet=input()
     param = "PM2.5"
     dataframe = readCSV(readSheet)
     fig,ax=plt.subplots()
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     #print(sensorDict)
     makePlot(sensorDict,actionArr, ax,param)
-    print("Time to Clear: " + timeToClear(actionArr))
+    print("Time to Clear: " + str(timeToClear(actionArr)))
     print(actionArr)
     #ax.format_xdata = mdates.DateFormatter('%H:%M:%S')
     plt.show()

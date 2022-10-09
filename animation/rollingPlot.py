@@ -43,7 +43,7 @@ def createPlotData(df):
     return resultDict , actionArr
 
 #takes in sensor dictionary of dataframes, actions tuple ([[],[]],[[],[]]), ax object and param to plot
-def makePlot(sensorDict,actionArr, ax,param):
+def makeRollingPlot(sensorDict,actionArr, ax,param):
     for key in sensorDict:
         ax.plot(sensorDict[key]["timestamp"],sensorDict[key][param].rolling(4).mean(),label="sensor {}".format(key))
     for i in range(len(actionArr)):
@@ -56,7 +56,21 @@ def makePlot(sensorDict,actionArr, ax,param):
     legend=ax.legend()
     #ax.set_xlim([0,max(sensorDict[key]["timestamp"])+30])
     ax.set_ylim([0,PARAM_AXES_LIM[param]])
-    
+
+def makeAveragedPlot(df,actionArr, ax,param):
+    averagedDF = df.groupby(["timestamp"]).mean()
+    print(averagedDF)
+    ax.plot(df["timestamp"].unique(),averagedDF["PM2.5"])
+    for i in range(len(actionArr)):
+        for j in range(len(actionArr[i][0])):
+            ax.axvline(x = actionArr[i][0][j], color = ('b' if i==0 else 'g' ), linestyle = ("dotted" if actionArr[i][1][j] == -1 else "solid") )
+            
+    ax.set_xlabel("Time")
+    ax.set_title(param + " against  time")
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('(%d) %H:%M:%S'))
+    legend=ax.legend()
+    #ax.set_xlim([0,max(sensorDict[key]["timestamp"])+30])
+    ax.set_ylim([0,PARAM_AXES_LIM[param]])   
 
 def timeToClear(inputTuple):
     startIndex = -1
@@ -69,22 +83,23 @@ def timeToClear(inputTuple):
         if inputTuple[0][1][j]==-1.0:
             endIndex = j
             break
-    print("First on " + str(inputTuple[0][0][endIndex]))
-    print("Last off " + str(inputTuple[0][0][startIndex]))
+    print("First on " + str(inputTuple[0][0][startIndex]))
+    print("Last off " + str(inputTuple[0][0][endIndex]))
     return inputTuple[0][0][endIndex]-inputTuple[0][0][startIndex]
 
 PARAMS = ["timestamp", "TVOC","CO2"]
 PARAM_AXES_LIM = {"TVOC":2000, "CO2": 4000, "PM1":20,"PM2.5":300,"PM10":20,"Temp":35,"Humidity":100}
 
 if __name__ == "__main__":
-    readSheet="aq_readings_02_test2.csv"
+    readSheet="aq_readings_0810_01.csv"
     param = "PM2.5"
     dataframe = readCSV(readSheet)
     fig,ax=plt.subplots()
     sensorDict, actionArr = createPlotData(dataframe)
     #print (actionArr[0][0][0].month)
     #print(sensorDict)
-    makePlot(sensorDict,actionArr, ax,param)
+    #makeRollingPlot(sensorDict,actionArr, ax,param)
+    makeAveragedPlot(dataframe,actionArr,ax,param)
     print("Time to Clear: " + str(timeToClear(actionArr)))
     print(actionArr)
     #ax.format_xdata = mdates.DateFormatter('%H:%M:%S')
