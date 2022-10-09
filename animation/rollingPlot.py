@@ -59,7 +59,7 @@ def makeRollingPlot(sensorDict,actionArr, ax,param):
 
 def makeAveragedPlot(df,actionArr, ax,param):
     averagedDF = df.groupby(["timestamp"]).mean()
-    print(averagedDF)
+    #print(averagedDF)
     ax.plot(df["timestamp"].unique(),averagedDF["PM2.5"])
     for i in range(len(actionArr)):
         for j in range(len(actionArr[i][0])):
@@ -71,6 +71,21 @@ def makeAveragedPlot(df,actionArr, ax,param):
     legend=ax.legend()
     #ax.set_xlim([0,max(sensorDict[key]["timestamp"])+30])
     ax.set_ylim([0,PARAM_AXES_LIM[param]])   
+
+def makeRollingAveragedPlot(df,actionArr, ax,param):
+    averagedDF = df.groupby(["timestamp"]).mean()
+    #print(averagedDF)
+    ax.plot(df["timestamp"].unique(),averagedDF["PM2.5"].rolling(4).mean())
+    for i in range(len(actionArr)):
+        for j in range(len(actionArr[i][0])):
+            ax.axvline(x = actionArr[i][0][j], color = ('b' if i==0 else 'g' ), linestyle = ("dotted" if actionArr[i][1][j] == -1 else "solid") )
+            
+    ax.set_xlabel("Time")
+    ax.set_title(param + " against  time")
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('(%d) %H:%M:%S'))
+    legend=ax.legend()
+    #ax.set_xlim([0,max(sensorDict[key]["timestamp"])+30])
+    ax.set_ylim([0,PARAM_AXES_LIM[param]]) 
 
 def timeToClear(inputTuple):
     startIndex = -1
@@ -91,15 +106,18 @@ PARAMS = ["timestamp", "TVOC","CO2"]
 PARAM_AXES_LIM = {"TVOC":2000, "CO2": 4000, "PM1":20,"PM2.5":300,"PM10":20,"Temp":35,"Humidity":100}
 
 if __name__ == "__main__":
-    readSheet="aq_readings_0810_01.csv"
+    xxx = input().split(" ")
+    readSheet=xxx[0]
     param = "PM2.5"
     dataframe = readCSV(readSheet)
     fig,ax=plt.subplots()
     sensorDict, actionArr = createPlotData(dataframe)
     #print (actionArr[0][0][0].month)
     #print(sensorDict)
-    #makeRollingPlot(sensorDict,actionArr, ax,param)
-    makeAveragedPlot(dataframe,actionArr,ax,param)
+    if xxx[1] =="r":
+        makeRollingAveragedPlot(dataframe,actionArr, ax,param)
+    else:
+        makeAveragedPlot(dataframe,actionArr,ax,param)
     print("Time to Clear: " + str(timeToClear(actionArr)))
     print(actionArr)
     #ax.format_xdata = mdates.DateFormatter('%H:%M:%S')

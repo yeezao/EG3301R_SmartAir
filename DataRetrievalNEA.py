@@ -1,15 +1,22 @@
 import requests
 import json
-DATE = "2022-10-09"
-TIME = "14:12:13"
-ploads = {"date_time":DATE + "T" + TIME}
+
 urlDict={
-    "Rainfall":"https://api.data.gov.sg/v1/environment/rainfall", 
     "Air Temperature":"https://api.data.gov.sg/v1/environment/air-temperature",
     "RH":"https://api.data.gov.sg/v1/environment/relative-humidity",
+    "Wind Speed":"https://api.data.gov.sg/v1/environment/wind-speed",
     "Wind Direction":"https://api.data.gov.sg/v1/environment/wind-direction",
-    "Wind Speed":"https://api.data.gov.sg/v1/environment/wind-speed"
+    "Rainfall":"https://api.data.gov.sg/v1/environment/rainfall"
 }
+
+unitDict={
+    "Air Temperature":"C",
+    "RH":"%",
+    "Wind Speed":"km/h",
+    "Wind Direction":"",
+    "Rainfall":""
+}
+
 
 def fetchAPI(param):
     r = requests.get(urlDict[param],params=ploads)
@@ -21,7 +28,15 @@ def fetchAPI(param):
             res = i["value"]
             break
     print("ResultTimestamp:{} {}:{} ".format(timestamp.split("T"),param,res))
-        
-print("Input time: {} {}".format(DATE,TIME))
+    return str(param) + " : " + str(res) + unitDict[param] + ", "
+
+
+# DATE=input()
+# TIME=input()
+# ploads = {"date_time":DATE + "T" + TIME}
+ploads = {"date_time":input()}
+print("Input time: {}".format(ploads))
+output = ""
 for key in urlDict:
-    fetchAPI(key)
+    output+=fetchAPI(key)
+print(output)
