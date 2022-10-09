@@ -22,6 +22,8 @@ def createPlotData(df):
         if not math.isnan(i):
             tempdf = df.loc[df['id'] == i]
             resultDict[i] = tempdf
+            #resultDict[i] = tempdf["PM2.5"].rolling(window = 4).mean()
+            #print(resultDict[i])
     tempdf = df[df['id'].isna()]
     fanArr=([],[])
     filterArr=([],[])
@@ -43,7 +45,7 @@ def createPlotData(df):
 #takes in sensor dictionary of dataframes, actions tuple ([[],[]],[[],[]]), ax object and param to plot
 def makePlot(sensorDict,actionArr, ax,param):
     for key in sensorDict:
-        ax.plot(sensorDict[key]["timestamp"],sensorDict[key][param],label="sensor {}".format(key))
+        ax.plot(sensorDict[key]["timestamp"],sensorDict[key][param].rolling(4).mean(),label="sensor {}".format(key))
     for i in range(len(actionArr)):
         for j in range(len(actionArr[i][0])):
             ax.axvline(x = actionArr[i][0][j], color = ('b' if i==0 else 'g' ), linestyle = ("dotted" if actionArr[i][1][j] == -1 else "solid") )
@@ -67,8 +69,8 @@ def timeToClear(inputTuple):
         if inputTuple[0][1][j]==-1.0:
             endIndex = j
             break
-    print("First on " + inputTuple[0][0][endIndex])
-    print("Last off " + inputTuple[0][0][startIndex])
+    print("First on " + str(inputTuple[0][0][endIndex]))
+    print("Last off " + str(inputTuple[0][0][startIndex]))
     return inputTuple[0][0][endIndex]-inputTuple[0][0][startIndex]
 
 PARAMS = ["timestamp", "TVOC","CO2"]
@@ -81,10 +83,9 @@ if __name__ == "__main__":
     fig,ax=plt.subplots()
     sensorDict, actionArr = createPlotData(dataframe)
     #print (actionArr[0][0][0].month)
-
     #print(sensorDict)
     makePlot(sensorDict,actionArr, ax,param)
-    print("Time to Clear: " + timeToClear(actionArr))
+    print("Time to Clear: " + str(timeToClear(actionArr)))
     print(actionArr)
     #ax.format_xdata = mdates.DateFormatter('%H:%M:%S')
     plt.show()
