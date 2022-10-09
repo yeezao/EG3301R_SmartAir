@@ -43,8 +43,9 @@ class SensorDataProcessor:
         pm10_list = []
         
         for item in dict.values():
-            c02_list.append(item["CO2"])
+            print(item)
             voc_list.append(item["TVOC"])
+            c02_list.append(item["CO2"])
             temp_list.append(item["Temp"])
             humidity_list.append(item["Humidity"])
             pm1_list.append(item["PM1"])
@@ -53,7 +54,7 @@ class SensorDataProcessor:
         
         return_dic = {}
 
-        return_dic["Temp"] = self.find_list_mode(c02_list)
+        return_dic["CO2"] = self.find_list_mode(c02_list)
         return_dic["TVOC"] = self.find_list_mode(voc_list)
         return_dic["Temp"] = self.find_list_mode(temp_list)
         return_dic["Humidity"] = self.find_list_mode(humidity_list)
@@ -77,7 +78,17 @@ class SensorDataProcessor:
             action_dict[pc.FILTER] = 1
         elif avg_dict["TVOC"] < 800:
             action_dict[pc.FILTER] = -1
+        if avg_dict["PM1"] > 100 or avg_dict["PM2.5"] > 100 or avg_dict["PM10"] > 100:
+            action_dict[pc.FILTER] = 1
+            action_dict[pc.RELAY_1] = 1
+        elif avg_dict["PM1"] < 50 or avg_dict["PM2.5"] < 50 or avg_dict["PM10"] < 50:
+            action_dict[pc.FILTER] = -1
+            action_dict[pc.RELAY_1] = -1
+        
 
+
+
+    
     def rebase_co2_thresholds(self):
         if (len(pgv.co2_values_rebaseline) == 0):
             return

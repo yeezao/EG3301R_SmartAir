@@ -77,7 +77,11 @@ def setup():
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(pc.RELAY_1_PIN, GPIO.OUT)
         GPIO.setup(pc.RELAY_2_PIN, GPIO.OUT)
+        GPIO.setup(pc.RELAY_3_PIN, GPIO.OUT)
         # logging.info("GPIO Pins setup complete")
+        GPIO.output(pc.RELAY_1_PIN, GPIO.LOW)
+        GPIO.output(pc.RELAY_2_PIN, GPIO.LOW)
+        GPIO.output(pc.RELAY_3_PIN, GPIO.LOW)
     else:
         logging.warning("GPIO Pins setup skipped - RPi.GPIO requires Linux but program is being run on %s", platform.system())
         pass
@@ -110,24 +114,23 @@ def send_actions(action_dict):
         PrettyPrint.print_action_data_fan(action_dict)
         logging.info("sending fan action %s to Arduino(s)", action_dict[pc.RELAY_1])
         client1.publish(pc.MQTT_TOPIC_PUB_FAN, json_deserialise({pc.RELAY_1: action_dict[pc.RELAY_1]}))
-        # if "Linux" in platform.system():
-        #     process_relay_action(action_dict)
-        # else:
-        #     logging.warning("No actions sent to GPIO - RPi.GPIO requires Linux but program is being run on %s ", platform.system())
-        #     pass
+        if "Linux" in platform.system():
+            process_relay_action(action_dict)
+        else:
+            logging.warning("No actions sent to GPIO - RPi.GPIO requires Linux but program is being run on %s ", platform.system())
+            pass
 
 # DEPRECATED Sends actions to GPIO
 def process_relay_action(action_dict):
-    logging.info("sending actions %i %i to GPIO Pins", action_dict[pc.RELAY_1], action_dict[pc.RELAY_2])
+    #logging.info("sending actions %i %i to GPIO Pins", action_dict[pc.RELAY_1], action_dict[pc.RELAY_2])
     if action_dict[pc.RELAY_1] == 1:
         GPIO.output(pc.RELAY_1_PIN, GPIO.HIGH)
+        GPIO.output(pc.RELAY_2_PIN, GPIO.HIGH)
+        GPIO.output(pc.RELAY_3_PIN, GPIO.HIGH)
     elif action_dict[pc.RELAY_1] == -1:
         GPIO.output(pc.RELAY_1_PIN, GPIO.LOW)
-
-    if action_dict[pc.RELAY_2] == 1:
-        GPIO.output(pc.RELAY_2_PIN, GPIO.HIGH)
-    elif action_dict[pc.RELAY_1] == -1:
         GPIO.output(pc.RELAY_2_PIN, GPIO.LOW)
+        GPIO.output(pc.RELAY_3_PIN, GPIO.LOW)
 
 def has_timeblock_expired(timeblock_start):
     timeblock_end = datetime.now()
@@ -153,17 +156,20 @@ def main():
     timeblock_start = datetime.now()
 
     while(1):
-        if (len(sensor_dict) == pc.NUM_OF_SENSORS and has_timeblock_expired(timeblock_start)):
+        if (len(sensor_dict) >= pc.NUM_OF_SENSORS and has_timeblock_expired(timeblock_start)):
             logging.info("All sensors have transmitted data and timeblock has expired - beginning processing")
             #PrettyPrint.print_sensor_data(sensor_dict_multipleperiods)
+            dict(sorted(sensor_dict.items()))
             write_to_csv()
             process_sensor_data()
             sensor_dict.clear()
             sensor_dict_multipleperiods.clear()
             logging.info("sensor_dict and sensor_dict_multipleperiods cleared")
             timeblock_start = datetime.now()
-        elif (len(sensor_dict) == pc.NUM_OF_SENSORS):
+        elif (len(sensor_dict) >= pc.NUM_OF_SENSORS):
             logging.debug("All sensors have transmitted data, but timeblock has not expired - saving sensor data to csv")
+            #TODO: sort sensor_dict
+            dict(sorted(sensor_dict.items()))
             write_to_csv()
             sensor_dict_multipleperiods[datetime.now()] = sensor_dict.copy()
             print(sensor_dict_multipleperiods)
@@ -171,7 +177,7 @@ def main():
         else:
             logging.debug("Not all sensor data received, waiting to receive all data. Only %i sensors have transmitted", len(sensor_dict))
             # print("Not all sensor data received, waiting to receive all data. Only ", len(sensor_dict), "sensors have transmitted")
-            time.sleep(5)
+            time.sleep(10)
 
 # Callback for when broker receives a message from client
 def on_sensor_message(client, userdata, message):

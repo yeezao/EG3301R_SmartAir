@@ -6,17 +6,18 @@ FILTER = "filter"
 # Using GPIO Pin 5 (29) for Relay 1 and GPIO Pin 6 (31) for Relay 2
 RELAY_1 = "relay1"
 RELAY_2 = "relay2"
-RELAY_1_PIN = 29
-RELAY_2_PIN = 31
+RELAY_1_PIN = 7
+RELAY_2_PIN = 13
+RELAY_3_PIN = 15
 
-TIMEBLOCK_PERIOD = 15 # 15sec block period between actions
+TIMEBLOCK_PERIOD = 30 # 15sec block period between actions
 REBASE_DURATION = 10
 
 MQTT_TOPIC_SUB = "sensordata"
 MQTT_TOPIC_SUB_CO2_AMB = "co2_ambient"
 MQTT_TOPIC_PUB_FILTER = "filter_action"
 MQTT_TOPIC_PUB_FAN = "fan_action"
-NUM_OF_SENSORS = 2
+NUM_OF_SENSORS = 1
 BROKER_IP = "192.168.31.149"
 MQTT_PORT = 1883
 
