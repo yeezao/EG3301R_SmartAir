@@ -1,9 +1,10 @@
 # animated_line_plot.py
 
+import sys
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import animation
-from datetime import datetime
+from datetime import datetime,timedelta
 import pandas as pd
 import matplotlib.dates as mdates
 import math
@@ -11,7 +12,7 @@ import math
 #reads csv to dataframe with timestamp formatted
 def readCSV (csvname):
     df=pd.read_csv(csvname)
-    df["timestamp"] = pd.to_datetime(df["date"] + " " + df["time"],dayfirst=True)
+    df["timestamp"] = pd.to_datetime(df["date"] + " " + df["time"],dayfirst=True).map(lambda x:x+timedelta(hours=18))
     return df
 
 #creates dictionary of sensor dataframes based on id, and actions tuple of timestamps of action sign changes 
@@ -43,7 +44,7 @@ def createPlotData(df):
 #takes in sensor dictionary of dataframes, actions tuple ([[],[]],[[],[]]), ax object and param to plot
 def makePlot(sensorDict,actionArr, ax,param):
     for key in sensorDict:
-        ax.plot(sensorDict[key]["timestamp"],sensorDict[key][param],label="sensor {}".format(key))
+        ax.plot((sensorDict[key]["timestamp"]),sensorDict[key][param],label="sensor {}".format(key))
     for i in range(len(actionArr)):
         for j in range(len(actionArr[i][0])):
             ax.axvline(x = actionArr[i][0][j], color = ('b' if i==0 else 'g' ), linestyle = ("dotted" if actionArr[i][1][j] == -1 else "solid") )
@@ -72,20 +73,21 @@ def timeToClear(inputTuple):
     return inputTuple[0][0][endIndex]-inputTuple[0][0][startIndex]
 
 PARAMS = ["timestamp", "TVOC","CO2"]
-PARAM_AXES_LIM = {"TVOC":2000, "CO2": 4000, "PM1":20,"PM2.5":300,"PM10":20,"Temp":35,"Humidity":100}
+PARAM_AXES_LIM = {"TVOC":200, "CO2": 1500, "PM1":20,"PM2.5":50,"PM10":20,"Temp":35,"Humidity":100}
 
 if __name__ == "__main__":
-    readSheet=input()
-    param = "PM2.5"
+    readSheet = sys.argv[1]
+    param = sys.argv[2]
     dataframe = readCSV(readSheet)
     fig,ax=plt.subplots()
     sensorDict, actionArr = createPlotData(dataframe)
     #print (actionArr[0][0][0].month)
 
-    #print(sensorDict)
+    print(sensorDict)
     makePlot(sensorDict,actionArr, ax,param)
-    print("Time to Clear: " + str(timeToClear(actionArr)))
     print(actionArr)
+    #print("Time to Clear: " + str(timeToClear(actionArr)))
+    
     #ax.format_xdata = mdates.DateFormatter('%H:%M:%S')
     plt.show()
     plt.close()
