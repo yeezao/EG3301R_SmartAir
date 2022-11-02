@@ -58,8 +58,18 @@ def makePlot(sensorDict,actionArr, ax,param):
     ax.set_ylim([0,PARAM_AXES_LIM[param]])
 
 def windowPlot(sensorDict,actionArr,ax,param,start,end):
+    print("{} Statistics for the period {} to {}".format(param,start,end))
     for key in sensorDict:
+        sensordf = sensorDict[key]
         ax.plot((sensorDict[key]["timestamp"]),sensorDict[key][param],label="sensor {}".format(key))
+        sensordfranged = sensordf[(sensordf['timestamp'] >= start) & (sensordf['timestamp'] <= end)]
+        print("Sensor {}".format(key))
+        print ("mean: " + str(sensordfranged[param].mean()))
+        print ("std: " + str(sensordfranged[param].std()))
+        print ("max: " + str(sensordfranged[param].max()))
+        print ("min: " + str(sensordfranged[param].min()))
+        print ("range: " + str(sensordfranged[param].max()-sensordfranged[param].min()))
+        print("------------------------------------")
     for i in range(len(actionArr)):
         for j in range(len(actionArr[i][0])):
             ax.axvline(x = actionArr[i][0][j], color = ('b' if i==0 else 'g' ), linestyle = ("dotted" if actionArr[i][1][j] == -1 else "solid") )       
@@ -69,7 +79,7 @@ def windowPlot(sensorDict,actionArr,ax,param,start,end):
     ax.set_title(param + " against  time")
     ax.xaxis.set_major_formatter(mdates.DateFormatter('(%d) %H:%M:%S'))
     legend=ax.legend()
-    ax.set_xlim([start,end])
+    ax.set_xlim([start-timedelta(minutes=30),end+timedelta(minutes=30)])
     ax.set_ylim([0,PARAM_AXES_LIM[param]])
     
 
@@ -113,7 +123,6 @@ if __name__ == "__main__":
     param = sys.argv[2]
     func = sys.argv[3]
     dataframe = readCSV(readSheet)
-    fig,ax=plt.subplots()
     sensorDict, actionArr = createPlotData(dataframe)
     #print (actionArr[0][0][0].month)
 
@@ -124,6 +133,7 @@ if __name__ == "__main__":
     #ax.format_xdata = mdates.DateFormatter('%H:%M:%S')
     x="troitj"
     while x!="no":
+        fig,ax=plt.subplots()
         if(func == 'w'):
             startstr = input("start time (t d/m): ")+"/22"
             start = datetime.strptime(startstr, '%H %d/%m/%y')
@@ -136,17 +146,19 @@ if __name__ == "__main__":
             functions[func](sensorDict,actionArr, ax,param)
         plt.show()
         plt.close()
+        
         x=input("continue? ")
-        while True:
-            try:
-              ipt = input("Graph type and param: ")
-              newipt = ipt.split(" ")
-              func,param = newipt[0],newipt[1]
-              break
-            except IndexError:
-                if(ipt=="" or ipt == "\n"):
+        if (x!="no"):
+            while True:
+                try:
+                    ipt = input("Graph type and param: ")
+                    newipt = ipt.split(" ")
+                    func,param = newipt[0],newipt[1]
                     break
-                print("Try again...")
+                except IndexError:
+                    if(ipt=="" or ipt == "\n"):
+                        break
+                    print("Try again...")
         
 
 
