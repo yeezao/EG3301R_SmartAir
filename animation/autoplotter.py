@@ -24,7 +24,7 @@ def createPlotData(df):
     for i in uniqueSensors:
         if not math.isnan(i):
             tempdf = df.loc[df['id'] == i]
-            tempdf["PMV"] = -8.405 + 0.322 * tempdf["Temp"] -0.686 * 0.2
+            tempdf["PMV"] = df.apply(lambda itt:-8.405 + 0.322 * itt.Temp -0.686 * 0.2, axis=1)
             resultDict[i] = tempdf
     tempdf = df[df['id'].isna()]
     fanArr=([],[])
@@ -78,10 +78,13 @@ def windowPlot(sensorDict,actionArr,ax,param,start,end):
     ax.axvline(x = end, color = ('r' ), linestyle = ("solid") )       
     ax.set_xlabel("Time")
     ax.set_title(param + " against  time")
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('(%d) %H:%M:%S'))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('(%d)%H:%M'))
     legend=ax.legend()
     ax.set_xlim([start,end])
-    ax.set_ylim([0,PARAM_AXES_LIM[param]])
+    if (param == "PMV"):
+        ax.set_ylim([-PARAM_AXES_LIM[param],PARAM_AXES_LIM[param]])    
+    else:
+        ax.set_ylim([0,PARAM_AXES_LIM[param]])
     
 
 def rollingAveragedGradientPlot(sensorDict,actionArr,ax,param):
@@ -116,7 +119,7 @@ def timeToClear(inputTuple):
     return inputTuple[0][0][endIndex]-inputTuple[0][0][startIndex]
 
 PARAMS = ["TVOC","CO2","PM1","PM2.5","PM10","Temp","Humidity","PMV"]
-PARAM_AXES_LIM = {"TVOC":200, "CO2": 1500, "PM1":20,"PM2.5":50,"PM10":20,"Temp":35,"Humidity":100,"PMV":120}
+PARAM_AXES_LIM = {"TVOC":200, "CO2": 1500, "PM1":20,"PM2.5":50,"PM10":20,"Temp":35,"Humidity":100,"PMV":2}
 functions = {"p":makePlot, "w":windowPlot,"g":rollingAveragedGradientPlot,"time":timeToClear}
 PHASES = {"1_start":"13 10/10","1_end":"13 25/10",
           "2_start":"13 25/10","2_end":"15 28/10",
@@ -128,6 +131,7 @@ PHASES = {"1_start":"13 10/10","1_end":"13 25/10",
 
 #enter sheet and time window
 #eg. python autoplotter.py baseline1.csv 13 11/10 10 25/10
+'''
 if __name__ == "__main__":
     readSheet = sys.argv[1]
     startstr = PHASES[sys.argv[2]]+"/22"
@@ -143,5 +147,23 @@ if __name__ == "__main__":
         functions[func](sensorDict,actionArr,ax,i,start,end)
         plt.savefig('graphs/{}_{}_{}.png'.format(i,start.strftime("%H%M_%d%m%Y"),end.strftime("%H%M_%d%m%Y")))
         plt.close()
-
-
+'''
+if __name__ == "__main__":
+    readSheet = sys.argv[1]
+    dataframe = readCSV(readSheet)
+    sensorDict, actionArr = createPlotData(dataframe)
+    func = "w"
+    for i in PARAMS:
+        print("READING {} =======================================".format(i))
+        for j in range(1,5):
+            print("PHASE {} ===============".format(j))
+            startstr = PHASES["{}_start".format(j)]+"/22"
+            endstr = PHASES["{}_end".format(j)]+"/22"
+            start = datetime.strptime(startstr, '%H %d/%m/%y')
+            end = datetime.strptime(endstr, '%H %d/%m/%y')
+            fig,ax=plt.subplots()
+            functions[func](sensorDict,actionArr,ax,i,start,end)
+            plt.savefig('graphs/{}_phase{}_{}_{}.png'.format(i,j,start.strftime("%H_%d%m"),end.strftime("%H_%d%m")))
+            plt.close()
+        
+        
