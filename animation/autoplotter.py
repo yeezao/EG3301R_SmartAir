@@ -65,20 +65,25 @@ def windowPlot(sensorDict,actionArr,ax,param,start,end):
         ax.plot((sensorDict[key]["timestamp"]),sensorDict[key][param],label="sensor {}".format(key))
         sensordfranged = sensordf[(sensordf['timestamp'] >= start) & (sensordf['timestamp'] <= end)]
         print("Sensor {}".format(key))
-        print ("mean: " + str(sensordfranged[param].mean()))
-        print ("std: " + str(sensordfranged[param].std()))
-        print ("max: " + str(sensordfranged[param].max()))
-        print ("min: " + str(sensordfranged[param].min()))
-        print ("range: " + str(sensordfranged[param].max()-sensordfranged[param].min()))
-        print("------------------------------------")
+        # print ("mean: " + str(sensordfranged[param].mean()))
+        # print ("std: " + str(sensordfranged[param].std()))
+        # print ("max: " + str(sensordfranged[param].max()))
+        # print ("min: " + str(sensordfranged[param].min()))
+        # print ("range: " + str(sensordfranged[param].max()-sensordfranged[param].min()))
+        # print("------------------------------------")
     for i in range(len(actionArr)):
         for j in range(len(actionArr[i][0])):
             ax.axvline(x = actionArr[i][0][j], color = ('b' if i==0 else 'g' ), linestyle = ("dotted" if actionArr[i][1][j] == -1 else "solid") )       
     ax.axvline(x = start, color = ('r' ), linestyle = ("solid") )       
     ax.axvline(x = end, color = ('r' ), linestyle = ("solid") )       
     ax.set_xlabel("Time")
+    ax.set_ylabel(param + " (" + PARAM_AXES_UNITS[param] + ")")
     ax.set_title(param + " against  time")
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('(%d)%H:%M'))
+    #ax.locator_params(axis='x',nbins=4)
+    #fig.locator_params(nbins=4,axis='x')
+    #ax.set_xticklabels(rotation=45)
+    ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=30))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('(%d)%H%M'))
     legend=ax.legend()
     ax.set_xlim([start,end])
     if (param == "PMV"):
@@ -98,6 +103,7 @@ def rollingAveragedGradientPlot(sensorDict,actionArr,ax,param):
             ax.axvline(x = actionArr[i][0][j], color = ('b' if i==0 else 'g' ), linestyle = ("dotted" if actionArr[i][1][j] == -1 else "solid") )  
     ax.axhline(y = 0, color = ('black' ), linestyle = ("solid") )  
     ax.set_xlabel("Time")
+    ax.set_ylabel("Time")
     ax.set_title("Rolling {} sample {} gradient against time".format(sampling,param))
     ax.xaxis.set_major_formatter(mdates.DateFormatter('(%d) %H:%M:%S'))
     legend=ax.legend()
@@ -120,13 +126,21 @@ def timeToClear(inputTuple):
 
 PARAMS = ["TVOC","CO2","PM1","PM2.5","PM10","Temp","Humidity","PMV"]
 PARAM_AXES_LIM = {"TVOC":200, "CO2": 1500, "PM1":20,"PM2.5":50,"PM10":20,"Temp":35,"Humidity":100,"PMV":2}
+PARAM_AXES_UNITS = {"TVOC":"ppb", "CO2": "ppm", "PM1":"μg/m3","PM2.5":"μg/m3","PM10":"μg/m3","Temp":"C","Humidity":"%","PMV":"%"}
 functions = {"p":makePlot, "w":windowPlot,"g":rollingAveragedGradientPlot,"time":timeToClear}
-PHASES = {"1_start":"13 10/10","1_end":"13 25/10",
-          "2_start":"13 25/10","2_end":"15 28/10",
-          "3_start":"15 28/10","3_end":"14 31/10",
-          "4_start":"14 31/10","4_end":"13 1/11",
-          "5_start":"13 1/11","5_end":"17 2/11",
-          "6_start":"17 2/11","6_end":"12 4/11",
+# PHASES = {"1_start":"13 10/10","1_end":"13 25/10",
+#           "2_start":"13 25/10","2_end":"15 28/10",
+#           "3_start":"15 28/10","3_end":"14 31/10",
+#           "4_start":"14 31/10","4_end":"13 1/11",
+#           "5_start":"13 1/11","5_end":"17 2/11",
+#           "6_start":"17 2/11","6_end":"12 4/11",
+#           }
+PHASES = {"1_start":"0 22/10","1_end":"0 23/10",
+          "2_start":"0 27/10","2_end":"0 28/10",
+          "3_start":"0 29/10","3_end":"0 30/10",
+          "4_start":"15 31/10","4_end":"15 1/11",
+          "5_start":"13 1/11","5_end":"13 2/11",
+          "6_start":"12 5/11","6_end":"14 5/11",
           }
 
 #enter sheet and time window
@@ -149,21 +163,23 @@ if __name__ == "__main__":
         plt.close()
 '''
 if __name__ == "__main__":
-    readSheet = sys.argv[1]
+    readSheet = "LAST_EVER.csv"
     dataframe = readCSV(readSheet)
     sensorDict, actionArr = createPlotData(dataframe)
     func = "w"
     for i in PARAMS:
         print("READING {} =======================================".format(i))
-        for j in range(1,5):
-            print("PHASE {} ===============".format(j))
+        for j in range(1,7):
+            if(j !=6):
+                continue
+            #print("PHASE {} ===============".format(j))
             startstr = PHASES["{}_start".format(j)]+"/22"
             endstr = PHASES["{}_end".format(j)]+"/22"
             start = datetime.strptime(startstr, '%H %d/%m/%y')
             end = datetime.strptime(endstr, '%H %d/%m/%y')
             fig,ax=plt.subplots()
             functions[func](sensorDict,actionArr,ax,i,start,end)
-            plt.savefig('graphs/{}_phase{}_{}_{}.png'.format(i,j,start.strftime("%H_%d%m"),end.strftime("%H_%d%m")))
+            plt.savefig('graphs3/{}_phase{}2HOUR_{}_{}.png'.format(i,j,start.strftime("%H_%d%m"),end.strftime("%H_%d%m")))
             plt.close()
         
         

@@ -1,5 +1,7 @@
 import requests
 import json
+from statistics import mean 
+
 
 urlDict={
     "Air Temperature":"https://api.data.gov.sg/v1/environment/air-temperature",
@@ -20,23 +22,33 @@ unitDict={
 
 def fetchAPI(param):
     r = requests.get(urlDict[param],params=ploads)
-    readings = r.json()["items"][0]["readings"]
+    items = r.json()["items"]
     timestamp = r.json()["items"][0]["timestamp"]
-    res = ""
-    for i in readings:
-        if i["station_id"] == "S50":
-            res = i["value"]
-            break
-    print("ResultTimestamp:{} {}:{} ".format(timestamp.split("T"),param,res))
-    return str(param) + " : " + str(res) + unitDict[param] + ", "
+    res = []
+    for readings in items:
+        for value in readings["readings"]:
+            if value["station_id"] == "S50":
+                res.append(value["value"])
+                break
+    #print("ResultTimestamp:{} {}:{} ".format(timestamp.split("T"),param,res))
+    x = mean(res)
+    return x
 
 
 # DATE=input()
 # TIME=input()
-# ploads = {"date_time":DATE + "T" + TIME}
-ploads = {"date_time":input()}
-print("Input time: {}".format(ploads))
-output = ""
-for key in urlDict:
-    output+=fetchAPI(key)
-print(output)
+# ploads = {"date_time":YYYY-MM-DD[T]HH:mm:ss}
+# ploads = {"date":input()}
+# print("Input time: {}".format(ploads))
+# output = ""
+# for key in urlDict:
+#     output+=fetchAPI(key)
+# print(output)
+
+date = input()
+for i in range (3):
+    ploads = {"date":date}
+    print("Input time: {}".format(ploads))
+    output=fetchAPI("Air Temperature")
+    print(output)
+    date = date[:-1] + str(int(date[-1]) + 1)
